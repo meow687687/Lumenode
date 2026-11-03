@@ -2,6 +2,10 @@ import React from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { DSAVisualizer } from '../visualizers/DSAVisualizer';
 import { MemorySimulator } from '../visualizers/MemorySimulator';
+import { BSTLab } from '../visualizers/BSTLab';
+import { AVLLab } from '../visualizers/AVLLab';
+import { BPlusTreeLab } from '../visualizers/BPlusTreeLab';
+import { CallStackLab } from '../visualizers/CallStackLab';
 import { SQLPlayground } from './SQLPlayground';
 import { CodePlayground } from './CodePlayground';
 import { SupportedLanguageId } from '../../types';
@@ -18,6 +22,38 @@ export const LabRoutePage: React.FC = () => {
     return (
       <div className="max-w-5xl mx-auto py-6">
         <DSAVisualizer />
+      </div>
+    );
+  }
+
+  if (id === 'bst' || id === 'bst-lab') {
+    return (
+      <div className="max-w-5xl mx-auto py-6">
+        <BSTLab />
+      </div>
+    );
+  }
+
+  if (id === 'avl' || id === 'avl-lab') {
+    return (
+      <div className="max-w-5xl mx-auto py-6">
+        <AVLLab />
+      </div>
+    );
+  }
+
+  if (id === 'bplus' || id === 'bplus-lab' || id === 'b-plus') {
+    return (
+      <div className="max-w-5xl mx-auto py-6">
+        <BPlusTreeLab />
+      </div>
+    );
+  }
+
+  if (id === 'callstack' || id === 'callstack-lab' || id === 'stack') {
+    return (
+      <div className="max-w-5xl mx-auto py-6">
+        <CallStackLab />
       </div>
     );
   }

@@ -21,6 +21,10 @@ import { RelatedConceptsBlock } from './RelatedConceptsBlock';
 import { ReferencesBlock } from './ReferencesBlock';
 import { DSAVisualizer } from '../visualizers/DSAVisualizer';
 import { MemorySimulator } from '../visualizers/MemorySimulator';
+import { BSTLab } from '../visualizers/BSTLab';
+import { AVLLab } from '../visualizers/AVLLab';
+import { BPlusTreeLab } from '../visualizers/BPlusTreeLab';
+import { CallStackLab } from '../visualizers/CallStackLab';
 import { SQLPlayground } from '../laboratories/SQLPlayground';
 import { useProgress } from '../../context/ProgressContext';
 import { CONCEPTS } from '../../data/concepts';
@@ -98,6 +102,34 @@ export const LessonRenderer: React.FC<LessonRendererProps> = ({
           return (
             <div key={idx} className="my-8">
               <DSAVisualizer />
+            </div>
+          );
+        }
+        if (section.visualizerType === 'bst') {
+          return (
+            <div key={idx} className="my-8">
+              <BSTLab />
+            </div>
+          );
+        }
+        if (section.visualizerType === 'avl') {
+          return (
+            <div key={idx} className="my-8">
+              <AVLLab />
+            </div>
+          );
+        }
+        if (section.visualizerType === 'bplus') {
+          return (
+            <div key={idx} className="my-8">
+              <BPlusTreeLab />
+            </div>
+          );
+        }
+        if (section.visualizerType === 'callstack') {
+          return (
+            <div key={idx} className="my-8">
+              <CallStackLab />
             </div>
           );
         }

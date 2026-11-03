@@ -128,10 +128,57 @@ export const CodeBlockSchema = z.object({
 
 export const VisualizationBlockSchema = z.object({
   type: z.literal('visualization'),
-  visualizerType: z.enum(['dsa', 'memory', 'oop', 'sql', 'custom']),
+  visualizerType: z.enum(['dsa', 'memory', 'oop', 'sql', 'bst', 'avl', 'bplus', 'callstack', 'custom']),
   initialStateKey: z.string().optional(),
   config: z.record(z.unknown()).optional(),
 });
+export type VisualizationBlock = z.infer<typeof VisualizationBlockSchema>;
+
+// --- Visualization & Simulation Engine Schemas ---
+export const PlaybackStatusSchema = z.enum(['idle', 'playing', 'paused', 'completed']);
+export type PlaybackStatus = z.infer<typeof PlaybackStatusSchema>;
+
+export const SimulationStepSchema = z.object({
+  stepIndex: z.number().int().nonnegative(),
+  operation: z.string(),
+  description: z.string(),
+  highlightedNodeIds: z.array(z.string()).optional().default([]),
+  secondaryHighlightedNodeIds: z.array(z.string()).optional().default([]),
+  activePointerIds: z.array(z.string()).optional().default([]),
+  comparison: z.object({
+    leftValue: z.union([z.number(), z.string()]),
+    rightValue: z.union([z.number(), z.string()]),
+    operator: z.enum(['<', '<=', '==', '!=', '>=', '>']),
+    result: z.boolean(),
+  }).optional(),
+  codeLine: z.number().int().positive().optional(),
+  callout: z.string().optional(),
+  stateSnapshot: z.any().optional(),
+});
+export type SimulationStep<TState = unknown> = Omit<
+  z.infer<typeof SimulationStepSchema>,
+  'stateSnapshot' | 'highlightedNodeIds' | 'secondaryHighlightedNodeIds' | 'activePointerIds'
+> & {
+  highlightedNodeIds?: string[];
+  secondaryHighlightedNodeIds?: string[];
+  activePointerIds?: string[];
+  stateSnapshot?: TState;
+};
+
+export const SimulationTraceSchema = z.object({
+  id: z.string(),
+  visualizerId: z.string(),
+  title: z.string(),
+  totalSteps: z.number().int().nonnegative(),
+  steps: z.array(SimulationStepSchema),
+  initialState: z.any(),
+  finalState: z.any(),
+});
+export type SimulationTrace<TState = unknown> = Omit<z.infer<typeof SimulationTraceSchema>, 'steps' | 'initialState' | 'finalState'> & {
+  steps: SimulationStep<TState>[];
+  initialState: TState;
+  finalState: TState;
+};
 
 export const CalloutBlockSchema = z.object({
   type: z.literal('callout'),
