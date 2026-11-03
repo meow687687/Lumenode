@@ -1,0 +1,22 @@
+{
+  "name": "lumenode-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Explore. Understand. Build. - Open-source CS Learning Platform",
+  "scripts": {
+    "dev": "pnpm --filter @lumenode/web dev",
+    "build": "pnpm --filter @lumenode/web build",
+    "lint": "pnpm --recursive run lint",
+    "test": "pnpm --recursive run test"
+  },
+  "keywords": [
+    "education",
+    "computer-science",
+    "algorithms",
+    "data-structures",
+    "interactive-visualizer"
+  ],
+  "author": "Lumenode Contributors",
+  "license": "Apache-2.0",
+  "type": "module"
+}
