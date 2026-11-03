@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, Play, RotateCcw, ArrowRight, CornerDownRight, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Layers, RotateCcw, ArrowRight, CornerDownRight, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
 interface MemoryStep {
   step: number;
@@ -14,7 +14,7 @@ const STEPS: MemoryStep[] = [
   {
     step: 1,
     code: 'int age = 42;',
-    explanation: 'Stack allocates 4 bytes for integer "age" at address 0x7FFE_40. It stores value 42.',
+    explanation: 'Stack allocates 4 bytes for integer "age" at virtual address 0x7FFE_40. It stores value 42.',
     stackVars: [
       { name: 'age', type: 'int (4 bytes)', address: '0x7FFE_40', value: '42' }
     ],
@@ -24,7 +24,7 @@ const STEPS: MemoryStep[] = [
   {
     step: 2,
     code: 'int *ptr = &age;',
-    explanation: 'Stack allocates 8 bytes for pointer "ptr" at address 0x7FFE_48. Its stored value is the memory address of age (0x7FFE_40).',
+    explanation: 'Stack allocates 8 bytes for pointer "ptr" at virtual address 0x7FFE_48. Its stored value is the memory address of age (0x7FFE_40).',
     stackVars: [
       { name: 'age', type: 'int (4 bytes)', address: '0x7FFE_40', value: '42' },
       { name: 'ptr', type: 'int* (8 bytes)', address: '0x7FFE_48', value: '0x7FFE_40', pointsTo: '0x7FFE_40' }
@@ -74,7 +74,7 @@ const STEPS: MemoryStep[] = [
   {
     step: 6,
     code: 'free(hPtr);',
-    explanation: 'The memory block at 0x6000_10 is released back to the OS allocator. Warning: hPtr still holds 0x6000_10 (dangling pointer) until set to NULL!',
+    explanation: 'The memory block at 0x6000_10 is released back to the OS allocator. Warning: hPtr still holds 0x6000_10 (dangling pointer) until explicitly set to NULL!',
     stackVars: [
       { name: 'age', type: 'int (4 bytes)', address: '0x7FFE_40', value: '99' },
       { name: 'ptr', type: 'int* (8 bytes)', address: '0x7FFE_48', value: '0x7FFE_40', pointsTo: '0x7FFE_40' },
@@ -109,14 +109,19 @@ export const MemorySimulator: React.FC = () => {
   return (
     <div className="bg-[#111827] border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
       {/* Simulator Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#0E1526]">
+      <div className="flex flex-wrap items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#0E1526] gap-3">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-cyan-500/10 text-cyan-400 rounded-lg">
             <Layers className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-semibold text-slate-100 text-lg">Memory & Pointer Simulator</h3>
-            <p className="text-xs text-slate-400">Low-Level Stack Frames, Heap Segments & Memory Addresses</p>
+            <div className="flex items-center space-x-2">
+              <h3 className="font-semibold text-slate-100 text-lg">Memory & Pointer Simulator</h3>
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-950 text-cyan-300 border border-cyan-800 font-semibold">
+                Idealized Educational Simulation
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">Step-by-step visual trace of stack frames, pointer addresses, and heap allocations</p>
           </div>
         </div>
 
@@ -125,7 +130,7 @@ export const MemorySimulator: React.FC = () => {
           <button
             onClick={handlePrev}
             disabled={currentStepIdx === 0}
-            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-300 rounded text-xs font-medium border border-slate-700"
+            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-300 rounded text-xs font-medium border border-slate-700 cursor-pointer"
           >
             Previous
           </button>
@@ -135,14 +140,14 @@ export const MemorySimulator: React.FC = () => {
           <button
             onClick={handleNext}
             disabled={currentStepIdx === STEPS.length - 1}
-            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded text-xs font-medium flex items-center space-x-1"
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded text-xs font-medium flex items-center space-x-1 cursor-pointer"
           >
             <span>Next Step</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleReset}
-            className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded border border-slate-700"
+            className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded border border-slate-700 cursor-pointer"
             title="Reset simulation"
           >
             <RotateCcw className="w-4 h-4" />
@@ -153,7 +158,7 @@ export const MemorySimulator: React.FC = () => {
       {/* Code Banner */}
       <div className="px-6 py-3 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <span className="text-xs uppercase font-mono tracking-wider text-slate-500">Executing C:</span>
+          <span className="text-xs uppercase font-mono tracking-wider text-slate-500">C Execution Statement:</span>
           <code className="px-3 py-1 bg-slate-900 border border-slate-800 rounded text-cyan-300 font-mono text-sm font-semibold">
             {current.code}
           </code>
@@ -204,7 +209,9 @@ export const MemorySimulator: React.FC = () => {
               );
             })}
           </div>
-          <p className="text-[11px] text-slate-500 mt-4 text-center">Grows downward • Automatically cleaned on return</p>
+          <p className="text-[11px] text-slate-500 mt-4 text-center">
+            *Note: On x86_64, stack memory grows downward; addresses here are simplified ascending offsets for clarity.
+          </p>
         </div>
 
         {/* HEAP SEGMENT */}
@@ -253,14 +260,20 @@ export const MemorySimulator: React.FC = () => {
               ))
             )}
           </div>
-          <p className="text-[11px] text-slate-500 mt-4 text-center">Grows upward • Must be manually freed</p>
+          <p className="text-[11px] text-slate-500 mt-4 text-center">Grows dynamically • Allocated by OS • Must be freed</p>
         </div>
       </div>
 
-      {/* Explanation Footer */}
-      <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-start space-x-3">
-        <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-        <p className="text-xs text-slate-300 leading-relaxed font-sans">{current.explanation}</p>
+      {/* Explanation Footer with Educational Disclaimer */}
+      <div className="p-4 bg-slate-950 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div className="flex items-start space-x-3">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+          <p className="text-xs text-slate-300 leading-relaxed font-sans">{current.explanation}</p>
+        </div>
+        <div className="text-[10px] text-slate-500 font-mono flex items-center shrink-0">
+          <Info className="w-3.5 h-3.5 mr-1 text-slate-400" />
+          Simulated educational trace
+        </div>
       </div>
     </div>
   );

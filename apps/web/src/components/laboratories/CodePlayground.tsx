@@ -1,27 +1,45 @@
-import React, { useState } from 'react';
-import { Play, Copy, RotateCcw, Check, Terminal, Cpu, Clock, HardDrive, ShieldAlert } from 'lucide-react';
-import { SupportedLanguageId } from '../../types';
+import React, { useState, useEffect } from 'react';
+import { Play, Copy, RotateCcw, Check, Terminal, Cpu, Clock, Info, Sparkles } from 'lucide-react';
+import { SupportedLanguageId, ExecutionResult } from '../../types';
+import { pythonRunner } from '../../services/pythonRunner';
 
-const TEMPLATES: Record<SupportedLanguageId, { filename: string; code: string; defaultOutput: string }> = {
+interface CodePlaygroundProps {
+  initialCode?: string;
+  initialLanguage?: SupportedLanguageId;
+}
+
+const TEMPLATES: Record<SupportedLanguageId, { filename: string; code: string }> = {
+  python: {
+    filename: 'script.py',
+    code: `# Lumenode Genuine Python 3 Runtime (Pyodide WASM)
+import sys
+
+def fibonacci(n):
+    sequence = [0, 1]
+    while len(sequence) < n:
+        sequence.append(sequence[-1] + sequence[-2])
+    return sequence
+
+print(f"Python version: {sys.version.split()[0]}")
+fib_numbers = fibonacci(10)
+print(f"Fibonacci(10): {fib_numbers}")
+print("Algorithm execution completed successfully!")
+`,
+  },
   c: {
     filename: 'main.c',
     code: `#include <stdio.h>
-#include <stdlib.h>
 
 int main() {
-    printf("=== Lumenode C Execution Sandbox ===\\n");
-    
-    // Demonstrate memory address inspection
     int val = 1337;
     int *ptr = &val;
     
     printf("Value: %d\\n", val);
-    printf("Address: %p\\n", (void*)ptr);
+    printf("Pointer Address: %p\\n", (void*)ptr);
     printf("Dereferenced: %d\\n", *ptr);
     
     return 0;
 }`,
-    defaultOutput: `=== Lumenode C Execution Sandbox ===\nValue: 1337\nAddress: 0x7ffd9820bc44\nDereferenced: 1337\n\nProcess exited with code 0.`,
   },
   cpp: {
     filename: 'solution.cpp',
@@ -30,82 +48,99 @@ int main() {
 #include <numeric>
 
 int main() {
-    std::cout << "=== Modern C++ (C++20) Runner ===\\n";
-    
     std::vector<int> numbers = {10, 20, 30, 40, 50};
     int sum = std::accumulate(numbers.begin(), numbers.end(), 0);
     
     std::cout << "Vector Size: " << numbers.size() << "\\n";
-    std::cout << "Total Sum: " << sum << "\\n";
-    
+    std::cout << "Sum: " << sum << "\\n";
     return 0;
 }`,
-    defaultOutput: `=== Modern C++ (C++20) Runner ===\nVector Size: 5\nTotal Sum: 150\n\nProcess exited with code 0.`,
-  },
-  python: {
-    filename: 'script.py',
-    code: `# Lumenode Python 3 Execution Environment
-import sys
-
-def analyze_complexity(n):
-    return {
-        "O(1)": 1,
-        "O(log N)": n.bit_length(),
-        "O(N)": n,
-        "O(N log N)": n * n.bit_length()
-    }
-
-print("=== Python Runtime Analytics ===")
-metrics = analyze_complexity(1024)
-for complexity, ops in metrics.items():
-    print(f"{complexity:<12}: {ops} operations")
-`,
-    defaultOutput: `=== Python Runtime Analytics ===\nO(1)        : 1 operations\nO(log N)    : 11 operations\nO(N)        : 1024 operations\nO(N log N)  : 11264 operations\n\nProcess exited with code 0.`,
   },
   java: {
     filename: 'Main.java',
-    code: `public class Main { public static void main(String[] args) { System.out.println("Java Ready"); } }`,
-    defaultOutput: 'Java Ready',
+    code: `public class Main { public static void main(String[] args) { System.out.println("Java Sandbox"); } }`,
   },
   rust: {
     filename: 'main.rs',
-    code: `fn main() { println!("Rust Ready"); }`,
-    defaultOutput: 'Rust Ready',
+    code: `fn main() { println!("Rust Sandbox"); }`,
   },
 };
 
-export const CodePlayground: React.FC = () => {
-  const [lang, setLang] = useState<SupportedLanguageId>('c');
-  const [code, setCode] = useState<string>(TEMPLATES.c.code);
-  const [stdin, setStdin] = useState<string>('');
-  const [output, setOutput] = useState<string>(TEMPLATES.c.defaultOutput);
+export const CodePlayground: React.FC<CodePlaygroundProps> = ({
+  initialCode,
+  initialLanguage,
+}) => {
+  const [lang, setLang] = useState<SupportedLanguageId>(initialLanguage || 'python');
+  const [code, setCode] = useState<string>(initialCode || TEMPLATES[initialLanguage || 'python'].code);
+  const [output, setOutput] = useState<string>('Ready for execution.\nSelect "Run" to execute program.');
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
-  const [metrics, setMetrics] = useState<{ timeMs: number; memoryKb: number; exitCode: number }>({
-    timeMs: 14,
-    memoryKb: 1420,
-    exitCode: 0,
-  });
+  const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
+
+  // Synchronize when initial props change (e.g. from lesson "Run in Playground")
+  useEffect(() => {
+    if (initialCode) {
+      setCode(initialCode);
+    }
+    if (initialLanguage) {
+      setLang(initialLanguage);
+    }
+  }, [initialCode, initialLanguage]);
 
   const handleLangChange = (newLang: SupportedLanguageId) => {
     setLang(newLang);
     setCode(TEMPLATES[newLang].code);
-    setOutput(TEMPLATES[newLang].defaultOutput);
+    setOutput(`Switched to ${newLang.toUpperCase()}.\nReady for execution.`);
+    setExecutionResult(null);
   };
 
-  const handleRun = () => {
-    setIsRunning(true);
-    setOutput('Compiling and executing in isolated container...');
-
-    setTimeout(() => {
-      setIsRunning(false);
-      setOutput(TEMPLATES[lang].defaultOutput);
-      setMetrics({
-        timeMs: Math.floor(Math.random() * 15) + 8,
-        memoryKb: Math.floor(Math.random() * 300) + 1200,
-        exitCode: 0,
+  const handleRun = async () => {
+    if (lang === 'c' || lang === 'cpp') {
+      setOutput(
+        `[STATUS: COMPILER GATEWAY PENDING]\n` +
+        `C (GCC) and C++ (Clang) require remote sandboxed execution container infrastructure (Phase 2B).\n\n` +
+        `To run code directly in the browser right now, switch to the "Python (Pyodide)" tab above!`
+      );
+      setExecutionResult({
+        executionId: `pending-${Date.now()}`,
+        language: lang,
+        status: 'unsupported',
+        stdout: '',
+        stderr: '',
+        durationMs: 0,
       });
-    }, 600);
+      return;
+    }
+
+    if (lang === 'python') {
+      setIsRunning(true);
+      setOutput('Initializing Pyodide WebAssembly runtime and executing...');
+
+      try {
+        const res = await pythonRunner.execute(code, 6000);
+        setExecutionResult(res);
+
+        let formattedOutput = '';
+        if (res.stdout) {
+          formattedOutput += res.stdout;
+        }
+        if (res.stderr) {
+          formattedOutput += `\n[STDERR]:\n${res.stderr}`;
+        }
+        if (res.error) {
+          formattedOutput += `\n[PYTHON EXCEPTION]:\n${res.error}`;
+        }
+        if (!formattedOutput) {
+          formattedOutput = `(Program executed with status: ${res.status} and produced no stdout/stderr output)`;
+        }
+
+        setOutput(formattedOutput);
+      } catch (err: any) {
+        setOutput(`Execution worker error: ${err.message || String(err)}`);
+      } finally {
+        setIsRunning(false);
+      }
+    }
   };
 
   const handleCopy = () => {
@@ -116,7 +151,8 @@ export const CodePlayground: React.FC = () => {
 
   const handleReset = () => {
     setCode(TEMPLATES[lang].code);
-    setOutput(TEMPLATES[lang].defaultOutput);
+    setOutput('Reset editor to default code template.');
+    setExecutionResult(null);
   };
 
   return (
@@ -128,24 +164,39 @@ export const CodePlayground: React.FC = () => {
             <Terminal className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-semibold text-slate-100 text-lg">Multi-Language Code Sandbox</h3>
-            <p className="text-xs text-slate-400">Strictly Isolated Sandboxed Compiler & Interpreter Gateway</p>
+            <div className="flex items-center space-x-2">
+              <h3 className="font-semibold text-slate-100 text-lg">Code Execution Laboratory</h3>
+              {lang === 'python' ? (
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 font-semibold flex items-center">
+                  <Sparkles className="w-3 h-3 mr-1" /> Browser WASM Ready
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-950 text-amber-400 border border-amber-800 font-semibold">
+                  Remote Gateway Pending
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-400">
+              {lang === 'python'
+                ? 'Genuine Python 3.12 WebAssembly runtime executed in a dedicated background worker'
+                : 'Native compiled language sandbox scheduled for isolated remote gateway integration'}
+            </p>
           </div>
         </div>
 
         {/* Language Tabs */}
         <div className="flex items-center space-x-2">
-          {(['c', 'cpp', 'python'] as SupportedLanguageId[]).map(l => (
+          {(['python', 'c', 'cpp'] as SupportedLanguageId[]).map(l => (
             <button
               key={l}
               onClick={() => handleLangChange(l)}
-              className={`px-3 py-1.5 rounded-md text-xs font-mono font-semibold transition ${
+              className={`px-3 py-1.5 rounded-md text-xs font-mono font-semibold transition cursor-pointer ${
                 lang === l
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
               }`}
             >
-              {l === 'c' ? 'C (GCC 13)' : l === 'cpp' ? 'C++ (Clang 17)' : 'Python (3.12)'}
+              {l === 'python' ? 'Python (Pyodide WASM)' : l === 'c' ? 'C (GCC 13)' : 'C++ (Clang 17)'}
             </button>
           ))}
         </div>
@@ -164,14 +215,14 @@ export const CodePlayground: React.FC = () => {
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleCopy}
-                className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded transition"
+                className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded transition cursor-pointer"
                 title="Copy code"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
               <button
                 onClick={handleReset}
-                className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded transition"
+                className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded transition cursor-pointer"
                 title="Reset code"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -179,7 +230,7 @@ export const CodePlayground: React.FC = () => {
               <button
                 onClick={handleRun}
                 disabled={isRunning}
-                className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-semibold shadow-md transition disabled:opacity-50"
+                className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-semibold shadow-md transition disabled:opacity-50 cursor-pointer"
               >
                 <Play className="w-3 h-3 fill-current" />
                 <span>{isRunning ? 'Running...' : 'Run'}</span>
@@ -201,18 +252,19 @@ export const CodePlayground: React.FC = () => {
           <div className="px-4 py-2 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-xs font-mono">
             <span className="text-slate-400 flex items-center">
               <Terminal className="w-3.5 h-3.5 mr-1.5 text-emerald-400" />
-              Standard Output (stdout)
+              Standard Output (stdout / stderr)
             </span>
-            <div className="flex items-center space-x-3 text-[11px] text-slate-500">
-              <span className="flex items-center">
-                <Clock className="w-3 h-3 mr-1 text-slate-400" />
-                {metrics.timeMs} ms
-              </span>
-              <span className="flex items-center">
-                <HardDrive className="w-3 h-3 mr-1 text-slate-400" />
-                {metrics.memoryKb} KB
-              </span>
-            </div>
+            {executionResult && (
+              <div className="flex items-center space-x-3 text-[11px] text-slate-400">
+                <span className="flex items-center">
+                  <Clock className="w-3 h-3 mr-1 text-slate-400" />
+                  {executionResult.durationMs} ms
+                </span>
+                <span className={executionResult.status === 'success' ? 'text-emerald-400' : 'text-rose-400'}>
+                  Status: {executionResult.status.toUpperCase()}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Output Pre */}
@@ -220,13 +272,22 @@ export const CodePlayground: React.FC = () => {
             {output}
           </pre>
 
-          {/* Sandbox security badge */}
-          <div className="p-3 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-500">
-            <div className="flex items-center space-x-1.5">
-              <ShieldAlert className="w-3.5 h-3.5 text-blue-400" />
-              <span>Isolated ramdisk • 64MB cap • Network disabled</span>
-            </div>
-            <span className="text-emerald-400 font-semibold">Exit Code: {metrics.exitCode}</span>
+          {/* Environment Status Badge */}
+          <div className="p-3 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
+            {lang === 'python' ? (
+              <div className="flex items-center space-x-1.5 text-emerald-400">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Pyodide WebAssembly Worker • 6s timeout • Safe in-memory scope</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-1.5 text-amber-400">
+                <Info className="w-3.5 h-3.5" />
+                <span>Remote Compiler Gateway required for C/C++ execution (Phase 2B)</span>
+              </div>
+            )}
+            {executionResult?.exitCode !== undefined && (
+              <span className="text-slate-300">Exit Code: {executionResult.exitCode}</span>
+            )}
           </div>
         </div>
       </div>

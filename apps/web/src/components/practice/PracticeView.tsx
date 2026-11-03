@@ -1,5 +1,5 @@
 import React from 'react';
-import { Award, CheckCircle2, Zap } from 'lucide-react';
+import { Award } from 'lucide-react';
 import { EXERCISES } from '../../data/quizzes';
 import { QuizBlock } from '../lesson/QuizBlock';
 import { useProgress } from '../../context/ProgressContext';

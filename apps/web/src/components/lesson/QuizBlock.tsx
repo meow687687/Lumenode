@@ -18,7 +18,6 @@ export const QuizBlock: React.FC<QuizBlockProps> = ({ exerciseId }) => {
     return null;
   }
 
-  const existingAttempt = quizScores[exerciseId];
   const isCorrect = submitted && selectedOption === exercise.correctOptionId;
 
   const handleSubmit = () => {

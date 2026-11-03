@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "pnpm --filter @lumenode/web dev",
     "build": "pnpm --filter @lumenode/web build",
-    "lint": "pnpm --recursive run lint",
-    "test": "pnpm --recursive run test"
+    "lint": "pnpm --filter @lumenode/web run lint",
+    "test": "pnpm --filter @lumenode/web run test",
+    "typecheck": "pnpm --filter @lumenode/shared-types run typecheck && pnpm --filter @lumenode/web run typecheck"
   },
   "keywords": [
     "education",

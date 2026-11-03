@@ -1,49 +1,39 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
   Compass, 
   Terminal, 
-  Cpu, 
-  Code2, 
   Network, 
   Layers, 
-  Boxes, 
   Database, 
   BookOpen, 
   CheckCircle2, 
-  ChevronRight,
   Zap,
   Award
 } from 'lucide-react';
-import { SUBJECTS } from '../../data/subjects';
 import { LESSONS } from '../../data/lessons';
 import { useProgress } from '../../context/ProgressContext';
-import { ActiveTab } from '../../types';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  activeTab: ActiveTab;
-  onNavigateTab: (tab: ActiveTab) => void;
-  onSelectLesson: (lessonId: string) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
-  activeTab,
-  onNavigateTab,
-  onSelectLesson,
 }) => {
-  const { completedLessons, activeLessonId } = useProgress();
+  const { completedLessons } = useProgress();
+  const location = useLocation();
 
-  const handleLessonClick = (id: string) => {
-    onSelectLesson(id);
-    onNavigateTab('lesson');
+  const handleLinkClick = () => {
     if (window.innerWidth < 1024) {
       onClose();
     }
   };
+
+  const isCurrent = (path: string) => location.pathname === path;
 
   return (
     <>
@@ -63,50 +53,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-4 space-y-6">
           {/* Main Navigation Links */}
           <div className="space-y-1">
-            <button
-              onClick={() => {
-                onNavigateTab('dashboard');
-                if (window.innerWidth < 1024) onClose();
-              }}
+            <Link
+              to="/"
+              onClick={handleLinkClick}
               className={`w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                activeTab === 'dashboard'
+                isCurrent('/')
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
               }`}
             >
               <Home className="w-4 h-4" />
               <span>Dashboard</span>
-            </button>
+            </Link>
 
-            <button
-              onClick={() => {
-                onNavigateTab('explore');
-                if (window.innerWidth < 1024) onClose();
-              }}
+            <Link
+              to="/explore"
+              onClick={handleLinkClick}
               className={`w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                activeTab === 'explore'
+                isCurrent('/explore')
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
               }`}
             >
               <Compass className="w-4 h-4" />
               <span>Explore All Subjects</span>
-            </button>
+            </Link>
 
-            <button
-              onClick={() => {
-                onNavigateTab('practice');
-                if (window.innerWidth < 1024) onClose();
-              }}
+            <Link
+              to="/practice"
+              onClick={handleLinkClick}
               className={`w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                activeTab === 'practice'
+                isCurrent('/practice')
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
               }`}
             >
               <Award className="w-4 h-4" />
               <span>Practice & Quizzes</span>
-            </button>
+            </Link>
           </div>
 
           {/* Interactive Laboratories */}
@@ -116,13 +100,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               Laboratories
             </div>
             <div className="space-y-1">
-              <button
-                onClick={() => {
-                  onNavigateTab('dsa-lab');
-                  if (window.innerWidth < 1024) onClose();
-                }}
+              <Link
+                to="/labs/dsa"
+                onClick={handleLinkClick}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
-                  activeTab === 'dsa-lab'
+                  isCurrent('/labs/dsa')
                     ? 'bg-blue-950/80 border border-blue-500/40 text-blue-300'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                 }`}
@@ -134,15 +116,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded">
                   2D
                 </span>
-              </button>
+              </Link>
 
-              <button
-                onClick={() => {
-                  onNavigateTab('memory-lab');
-                  if (window.innerWidth < 1024) onClose();
-                }}
+              <Link
+                to="/labs/memory"
+                onClick={handleLinkClick}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
-                  activeTab === 'memory-lab'
+                  isCurrent('/labs/memory')
                     ? 'bg-blue-950/80 border border-blue-500/40 text-blue-300'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                 }`}
@@ -154,15 +134,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950 px-1.5 py-0.5 rounded">
                   Stack/Heap
                 </span>
-              </button>
+              </Link>
 
-              <button
-                onClick={() => {
-                  onNavigateTab('sql-lab');
-                  if (window.innerWidth < 1024) onClose();
-                }}
+              <Link
+                to="/labs/sql"
+                onClick={handleLinkClick}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
-                  activeTab === 'sql-lab'
+                  isCurrent('/labs/sql')
                     ? 'bg-blue-950/80 border border-blue-500/40 text-blue-300'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                 }`}
@@ -174,15 +152,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded">
                   WASM
                 </span>
-              </button>
+              </Link>
 
-              <button
-                onClick={() => {
-                  onNavigateTab('code-lab');
-                  if (window.innerWidth < 1024) onClose();
-                }}
+              <Link
+                to="/labs/code"
+                onClick={handleLinkClick}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
-                  activeTab === 'code-lab'
+                  isCurrent('/labs/code')
                     ? 'bg-blue-950/80 border border-blue-500/40 text-blue-300'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                 }`}
@@ -192,9 +168,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span>Code Sandbox</span>
                 </div>
                 <span className="text-[10px] font-mono text-violet-400 bg-violet-950 px-1.5 py-0.5 rounded">
-                  C/C++/Py
+                  Python/C/C++
                 </span>
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -207,13 +183,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             <div className="space-y-1">
               {LESSONS.map(l => {
-                const isActive = activeTab === 'lesson' && activeLessonId === l.id;
+                const isActive = isCurrent(`/lessons/${l.id}`);
                 const isCompleted = completedLessons.has(l.id);
 
                 return (
-                  <button
+                  <Link
                     key={l.id}
-                    onClick={() => handleLessonClick(l.id)}
+                    to={`/lessons/${l.id}`}
+                    onClick={handleLinkClick}
                     className={`w-full text-left px-3 py-2 rounded-xl text-xs transition flex items-center justify-between group ${
                       isActive
                         ? 'bg-blue-600/20 border border-blue-500/40 text-blue-300'
@@ -232,7 +209,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <span className="text-[10px] font-mono uppercase text-slate-500 shrink-0">
                       {l.languageId || 'CS'}
                     </span>
-                  </button>
+                  </Link>
                 );
               })}
             </div>

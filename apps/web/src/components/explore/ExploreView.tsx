@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
-import { Search, Terminal, Cpu, Code2, Network, Layers, Boxes, Database, ArrowRight, BookOpen } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Search, Terminal, Cpu, Code2, Network, Layers, Boxes, Database, ArrowRight } from 'lucide-react';
 import { SUBJECTS } from '../../data/subjects';
 import { LESSONS } from '../../data/lessons';
 import { SubjectCategory } from '../../types';
 
-interface ExploreViewProps {
-  onSelectLesson: (lessonId: string) => void;
-}
-
-export const ExploreView: React.FC<ExploreViewProps> = ({ onSelectLesson }) => {
+export const ExploreView: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<SubjectCategory | 'all'>('all');
+
+  const getInitialCategory = (): SubjectCategory | 'all' => {
+    if (location.pathname === '/languages') return 'programming-languages';
+    if (location.pathname === '/subjects') return 'core-cs';
+    return 'all';
+  };
+
+  const [selectedCategory, setSelectedCategory] = useState<SubjectCategory | 'all'>(getInitialCategory());
+
+  useEffect(() => {
+    if (location.pathname === '/languages') setSelectedCategory('programming-languages');
+    else if (location.pathname === '/subjects') setSelectedCategory('core-cs');
+  }, [location.pathname]);
 
   const filteredSubjects = SUBJECTS.filter(s => {
     const matchesCategory = selectedCategory === 'all' || s.category === selectedCategory;
@@ -65,7 +76,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onSelectLesson }) => {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
                   selectedCategory === cat
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
@@ -116,8 +127,8 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onSelectLesson }) => {
                     matchingLessons.map(l => (
                       <button
                         key={l.id}
-                        onClick={() => onSelectLesson(l.id)}
-                        className="w-full text-left p-2 rounded-lg bg-slate-900/60 hover:bg-slate-800 border border-slate-800/60 text-xs text-slate-300 font-medium flex items-center justify-between group transition"
+                        onClick={() => navigate(`/lessons/${l.id}`)}
+                        className="w-full text-left p-2 rounded-lg bg-slate-900/60 hover:bg-slate-800 border border-slate-800/60 text-xs text-slate-300 font-medium flex items-center justify-between group transition cursor-pointer"
                       >
                         <span className="truncate pr-2">{l.title.split(':')[0]}</span>
                         <ArrowRight className="w-3.5 h-3.5 text-blue-400 opacity-0 group-hover:opacity-100 transition shrink-0" />
@@ -131,7 +142,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onSelectLesson }) => {
                 <button
                   onClick={() => {
                     const firstLesson = matchingLessons[0] || LESSONS[0];
-                    onSelectLesson(firstLesson.id);
+                    navigate(`/lessons/${firstLesson.id}`);
                   }}
                   className="w-full py-2 bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white rounded-xl text-xs font-semibold border border-blue-500/20 hover:border-blue-500 transition text-center cursor-pointer"
                 >

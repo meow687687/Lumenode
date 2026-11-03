@@ -9,27 +9,26 @@ graph TD
     Client["Web Client (apps/web)"]
     
     subgraph UI & Presentation Layer
-        Shell["App Shell & Navigation"]
-        Router["Declarative Router"]
-        Theme["Theme & Design System"]
+        Shell["App Shell & Navigation (React Router)"]
+        Router["Path-Based Declarative Routes (/explore, /lessons/:id, /labs/:id)"]
+        Theme["Dark-First Theme & Design System"]
     end
     
-    subgraph Core Engines (packages/)
-        ContentEngine["content-engine<br/>(Markdown/MDX, Ast, Metadata)"]
-        LessonRenderer["lesson-renderer<br/>(Structured Block Renderer)"]
-        VisualCore["visualization-core<br/>(Step Tracing, 2D/3D Canvas)"]
-        ExecAdapter["execution-adapter<br/>(Isolated Execution, SQLite WASM)"]
-        AssessEngine["assessment-engine<br/>(MCQ, Tracing, Coding Checks)"]
-        ProgressEngine["progress-engine<br/>(IndexedDB, Local-first Sync)"]
-        SharedTypes["shared-types<br/>(Zod Schemas, Domain Models)"]
+    subgraph Core Engines & Dedicated Web Workers
+        ZodValidator["Runtime Schema Validator (Zod)"]
+        LessonRenderer["lesson-renderer<br/>(Structured Block Renderer + Error Boundary)"]
+        VisualCore["visualization-core<br/>(Step Tracing & Educational Simulations)"]
+        PythonWorker["Dedicated Python Worker<br/>(Pyodide WASM Runtime)"]
+        SQLiteWorker["Dedicated SQLite Worker<br/>(sql.js WASM In-Memory DB)"]
+        ProgressEngine["progress-engine<br/>(Local-first Storage with Clean Init)"]
+        SharedTypes["packages/shared-types<br/>(Zod Schemas & TypeScript Types)"]
     end
 
     subgraph Interactive Laboratories
-        DSALab["DSA Visualizer"]
-        MemoryLab["Memory & Pointer Simulator"]
-        InheritLab["OOP Inheritance Lab"]
-        SQLLab["SQL Playground (SQLite WASM)"]
-        CodePlayground["Code Playground"]
+        DSALab["DSA Visualizer (Linked Lists, Binary Search)"]
+        MemoryLab["Memory & Pointer Simulator (Stack/Heap/Pointers)"]
+        SQLLab["SQL Playground (Genuine SQLite WASM)"]
+        CodePlayground["Code Sandbox (Pyodide WASM + Truthful Indicators)"]
     end
 
     Client --> Shell
@@ -37,34 +36,34 @@ graph TD
     Router --> LessonRenderer
     Router --> Interactive Laboratories
     
-    LessonRenderer --> ContentEngine
+    LessonRenderer --> ZodValidator
     LessonRenderer --> VisualCore
-    LessonRenderer --> AssessEngine
     
-    Interactive Laboratories --> ExecAdapter
-    Interactive Laboratories --> VisualCore
+    CodePlayground --> PythonWorker
+    SQLLab --> SQLiteWorker
     
-    AssessEngine --> ProgressEngine
     LessonRenderer --> ProgressEngine
+    Interactive Laboratories --> ProgressEngine
     
-    ContentEngine -.-> SharedTypes
-    ProgressEngine -.-> SharedTypes
-    ExecAdapter -.-> SharedTypes
+    ZodValidator -.-> SharedTypes
 ```
 
 ## 2. Core Principles of the Architecture
 
 1. **Local-First and Zero-Friction:**
-   - Learners can access core content, run SQL queries in-browser (via SQLite WASM), step through DSA visualizers, and track progress offline via IndexedDB without requiring immediate mandatory account creation or cloud connectivity.
+   - Learners can access core content, run SQL queries in-browser (via SQLite WASM in dedicated web workers), step through DSA visualizers, run authentic Python 3 programs, and track progress offline without mandatory cloud connectivity.
 
-2. **Data-Driven Content:**
-   - Lessons are not hardcoded React pages. They are structured data schemas (JSON/Markdown frontmatter + structured content blocks) that the `lesson-renderer` compiles into rich, accessible views.
+2. **Data-Driven & Schema-Validated Content:**
+   - Lessons are structured data validated via **Zod runtime schemas** (`LessonSchema`, `ContentBlockSchema`). Unrecognized or malformed blocks trigger an explicit authoring error boundary rather than failing silently.
 
-3. **Decoupled Execution:**
-   - User code execution never runs in the application server process. Local executions (e.g. SQLite WASM, client-side simulations) run in Web Workers; remote language runs (C, C++, Python) route via `execution-adapter` to a sandboxed gateway (e.g., Judge0 or isolated runner) with strict CPU, memory, and timeout bounds.
+3. **Decoupled Execution in Dedicated Web Workers:**
+   - User code execution never runs in the application server process or main UI thread.
+   - Client-side Python runs in `src/workers/python.worker.ts` with Pyodide WASM, capturing `sys.stdout` and `sys.stderr` with hard timeouts.
+   - Client-side SQL runs in `src/workers/sqlite.worker.ts` with `sql.js` WASM on an in-memory database.
+   - Compiled languages (C and C++) display truthful status indicators awaiting the Phase 2B remote container gateway.
 
 4. **Canonical Concepts vs. Language Implementations:**
-   - Concepts (e.g., `dsa.linked-lists`, `memory.pointers`) are language-agnostic first-class entities. Language implementations (C, C++, Python, Rust) bind to the concept, preventing duplicated educational theory.
+   - Concepts (e.g., `dsa.singly-linked-list`, `memory.pointers-intro`) are language-agnostic first-class entities. Language implementations bind to concepts without duplicating core theory.
 
 ## 3. Directory and Package Layout
 
@@ -72,19 +71,15 @@ graph TD
 lumenode/
 ├── apps/
 │   └── web/                   # Main React 19 + Vite SPA application
+│       ├── src/
+│       │   ├── components/    # Layout, lessons, visualizers, laboratories
+│       │   ├── context/       # Local-first progress state management
+│       │   ├── data/          # Canonical subjects, lessons, exercises
+│       │   ├── services/      # Python and SQLite Web Worker adapters
+│       │   ├── workers/       # Dedicated Pyodide and SQLite WASM Web Workers
+│       │   └── test/          # Vitest & Testing Library test suites
 ├── packages/
-│   ├── shared-types/          # Canonical schemas, interfaces, enums (TypeScript + Zod)
-│   ├── design-system/         # Reusable Tailwind components, tokens, themes
-│   ├── content-engine/        # Content loader, validator, search indexing
-│   ├── lesson-renderer/       # Dynamic block-based lesson rendering
-│   ├── visualization-core/    # State-driven animation, playback controls, step tracers
-│   ├── execution-adapter/     # Local/remote execution abstraction + SQLite WASM worker
-│   ├── assessment-engine/     # Quiz, predict-output, code testing evaluations
-│   └── progress-engine/       # IndexedDB storage and local progress tracker
-├── content/
-│   ├── subjects/              # Subject metadata
-│   ├── concepts/              # Language-independent concept definitions
-│   ├── lessons/               # Concrete lesson content blocks & code
-│   └── exercises/             # Question banks, challenges, mock tests
-└── docs/                      # Architectural, technical, and product specifications
+│   └── shared-types/          # Canonical Zod schemas, TypeScript types, validators
+├── docs/                      # Architectural, technical, security, and audit specs
+└── README.md
 ```

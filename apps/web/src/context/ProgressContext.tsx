@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UserLessonProgress, Bookmark } from '../types';
+import { Bookmark } from '../types';
 
 interface ProgressContextType {
   completedLessons: Set<string>;
@@ -11,6 +11,7 @@ interface ProgressContextType {
   isBookmarked: (id: string) => boolean;
   activeLessonId: string;
   setActiveLessonId: (id: string) => void;
+  resetAllProgress: () => void;
 }
 
 const STORAGE_KEYS = {
@@ -23,12 +24,14 @@ const STORAGE_KEYS = {
 const ProgressContext = createContext<ProgressContextType | undefined>(undefined);
 
 export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // First-time users start with an empty progress set (zero lessons pre-completed)
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.COMPLETED_LESSONS);
-      return saved ? new Set(JSON.parse(saved)) : new Set(['c-pointers-basics']);
-    } catch {
-      return new Set();
+      return saved ? new Set<string>(JSON.parse(saved)) : new Set<string>();
+    } catch (e) {
+      console.warn('ProgressContext: localStorage unavailable, starting clean state', e);
+      return new Set<string>();
     }
   });
 
@@ -129,6 +132,19 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const isBookmarked = (id: string) => bookmarks.some(b => b.targetId === id);
 
+  const resetAllProgress = () => {
+    setCompletedLessons(new Set());
+    setQuizScores({});
+    setBookmarks([]);
+    try {
+      localStorage.removeItem(STORAGE_KEYS.COMPLETED_LESSONS);
+      localStorage.removeItem(STORAGE_KEYS.QUIZ_SCORES);
+      localStorage.removeItem(STORAGE_KEYS.BOOKMARKS);
+    } catch (e) {
+      console.warn('Failed to clear storage', e);
+    }
+  };
+
   return (
     <ProgressContext.Provider
       value={{
@@ -140,7 +156,8 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         toggleBookmark,
         isBookmarked,
         activeLessonId,
-        setActiveLessonId
+        setActiveLessonId,
+        resetAllProgress,
       }}
     >
       {children}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, SkipForward, SkipBack, RotateCcw, Plus, Trash2, Search, ArrowRight, Zap } from 'lucide-react';
+import { Play, RotateCcw, Plus, Trash2, ArrowRight, Zap, Info, SkipForward } from 'lucide-react';
 
 interface ListNode {
   id: string;
@@ -135,13 +135,18 @@ export const DSAVisualizer: React.FC = () => {
   return (
     <div className="bg-[#111827] border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
       {/* Top Header / Tab Switcher */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#0E1526]">
+      <div className="flex flex-wrap items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#0E1526] gap-3">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-blue-500/10 text-blue-400 rounded-lg">
             <Zap className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-semibold text-slate-100 text-lg">Interactive DSA Laboratory</h3>
+            <div className="flex items-center space-x-2">
+              <h3 className="font-semibold text-slate-100 text-lg">Interactive DSA Laboratory</h3>
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-950 text-blue-300 border border-blue-800 font-semibold">
+                Idealized Educational Simulation
+              </span>
+            </div>
             <p className="text-xs text-slate-400">Deterministic Step-by-Step Algorithm & Memory Visualizer</p>
           </div>
         </div>
@@ -149,7 +154,7 @@ export const DSAVisualizer: React.FC = () => {
         <div className="flex space-x-2 bg-slate-900/90 p-1 rounded-lg border border-slate-800">
           <button
             onClick={() => setActiveTab('linked-list')}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
               activeTab === 'linked-list'
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -159,7 +164,7 @@ export const DSAVisualizer: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('binary-search')}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
               activeTab === 'binary-search'
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -181,12 +186,12 @@ export const DSAVisualizer: React.FC = () => {
                   type="number"
                   value={inputValue}
                   onChange={e => setInputValue(Number(e.target.value))}
-                  className="w-20 px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-md text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-20 px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-md text-sm text-slate-200 focus:outline-none focus:border-blue-500 font-mono"
                   placeholder="Val"
                 />
                 <button
                   onClick={handlePrepend}
-                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md text-xs font-medium border border-slate-700 transition"
+                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md text-xs font-medium border border-slate-700 transition cursor-pointer"
                   title="Insert at head (O(1))"
                 >
                   <Plus className="w-3.5 h-3.5 text-emerald-400" />
@@ -194,7 +199,7 @@ export const DSAVisualizer: React.FC = () => {
                 </button>
                 <button
                   onClick={handleAppend}
-                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md text-xs font-medium border border-slate-700 transition"
+                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md text-xs font-medium border border-slate-700 transition cursor-pointer"
                   title="Insert at tail"
                 >
                   <Plus className="w-3.5 h-3.5 text-blue-400" />
@@ -203,7 +208,7 @@ export const DSAVisualizer: React.FC = () => {
                 <button
                   onClick={handleDeleteHead}
                   disabled={list.length === 0}
-                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded-md text-xs font-medium border border-rose-800/60 transition disabled:opacity-50"
+                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded-md text-xs font-medium border border-rose-800/60 transition disabled:opacity-50 cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Delete Head</span>
@@ -214,14 +219,14 @@ export const DSAVisualizer: React.FC = () => {
                 <button
                   onClick={startTraversal}
                   disabled={isTraversing || list.length === 0}
-                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-medium transition disabled:opacity-50"
+                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-medium transition disabled:opacity-50 cursor-pointer"
                 >
-                  <Play className="w-3.5 h-3.5" />
+                  <Play className="w-3.5 h-3.5 fill-current" />
                   <span>Traverse Nodes</span>
                 </button>
                 <button
                   onClick={resetList}
-                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-md border border-slate-700"
+                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-md border border-slate-700 cursor-pointer"
                   title="Reset List"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -314,7 +319,10 @@ export const DSAVisualizer: React.FC = () => {
                 <span className="text-blue-400 mr-2 font-bold">[Trace]</span>
                 {logMessage}
               </span>
-              <span className="text-slate-500 text-[11px]">Nodes: {list.length}</span>
+              <span className="text-slate-500 text-[11px] flex items-center">
+                <Info className="w-3.5 h-3.5 mr-1 text-slate-400" />
+                Addresses are simulated heap illustrations
+              </span>
             </div>
           </div>
         ) : (
@@ -330,7 +338,7 @@ export const DSAVisualizer: React.FC = () => {
                     setBsTarget(Number(e.target.value));
                     resetBs();
                   }}
-                  className="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-md text-sm text-slate-200 font-mono"
+                  className="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-md text-sm text-slate-200 font-mono cursor-pointer"
                 >
                   {sortedArray.map(val => (
                     <option key={val} value={val}>
@@ -345,14 +353,14 @@ export const DSAVisualizer: React.FC = () => {
                 <button
                   onClick={handleBsStep}
                   disabled={bsFound !== null}
-                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-medium transition disabled:opacity-50"
+                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-medium transition disabled:opacity-50 cursor-pointer"
                 >
                   <SkipForward className="w-3.5 h-3.5" />
                   <span>Step Forward</span>
                 </button>
                 <button
                   onClick={resetBs}
-                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-md border border-slate-700"
+                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-md border border-slate-700 cursor-pointer"
                   title="Reset"
                 >
                   <RotateCcw className="w-4 h-4" />

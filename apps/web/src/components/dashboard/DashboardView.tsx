@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Play, 
   Terminal, 
@@ -18,15 +19,10 @@ import {
 import { SUBJECTS } from '../../data/subjects';
 import { LESSONS } from '../../data/lessons';
 import { useProgress } from '../../context/ProgressContext';
-import { ActiveTab } from '../../types';
 
-interface DashboardViewProps {
-  onSelectLesson: (lessonId: string) => void;
-  onNavigateTab: (tab: ActiveTab) => void;
-}
-
-export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectLesson, onNavigateTab }) => {
+export const DashboardView: React.FC = () => {
   const { completedLessons, bookmarks, activeLessonId } = useProgress();
+  const navigate = useNavigate();
   const currentLesson = LESSONS.find(l => l.id === activeLessonId) || LESSONS[0];
 
   const getSubjectIcon = (iconName: string) => {
@@ -62,21 +58,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectLesson, on
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-4">
-            <button
-              onClick={() => onSelectLesson(currentLesson.id)}
+            <Link
+              to={`/lessons/${currentLesson.id}`}
               className="flex items-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-600/30 cursor-pointer"
             >
               <Play className="w-4 h-4 fill-current" />
               <span>Resume: {currentLesson.title.split(':')[0]}</span>
-            </button>
+            </Link>
 
-            <button
-              onClick={() => onNavigateTab('dsa-lab')}
+            <Link
+              to="/labs/dsa"
               className="flex items-center space-x-2 px-4 py-2.5 bg-slate-900/90 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition cursor-pointer"
             >
               <Zap className="w-4 h-4 text-amber-400" />
               <span>Open Visual Labs</span>
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -122,13 +118,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectLesson, on
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-bold text-slate-100">Interactive Laboratories</h2>
-            <p className="text-xs text-slate-400">Step-by-step simulations and in-browser sandboxes</p>
+            <p className="text-xs text-slate-400">Real in-browser engines and step-by-step visualizations</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div
-            onClick={() => onNavigateTab('dsa-lab')}
+          <Link
+            to="/labs/dsa"
             className="p-5 rounded-xl bg-[#111827] border border-slate-800 hover:border-blue-500/50 transition cursor-pointer group"
           >
             <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-lg w-max mb-3 group-hover:scale-105 transition">
@@ -141,10 +137,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectLesson, on
             <span className="text-[11px] font-mono text-blue-400 flex items-center group-hover:translate-x-1 transition">
               Launch Lab <ArrowRight className="w-3 h-3 ml-1" />
             </span>
-          </div>
+          </Link>
 
-          <div
-            onClick={() => onNavigateTab('memory-lab')}
+          <Link
+            to="/labs/memory"
             className="p-5 rounded-xl bg-[#111827] border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer group"
           >
             <div className="p-2.5 bg-cyan-500/10 text-cyan-400 rounded-lg w-max mb-3 group-hover:scale-105 transition">
@@ -157,10 +153,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectLesson, on
             <span className="text-[11px] font-mono text-cyan-400 flex items-center group-hover:translate-x-1 transition">
               Launch Lab <ArrowRight className="w-3 h-3 ml-1" />
             </span>
-          </div>
+          </Link>
 
-          <div
-            onClick={() => onNavigateTab('sql-lab')}
+          <Link
+            to="/labs/sql"
             className="p-5 rounded-xl bg-[#111827] border border-slate-800 hover:border-emerald-500/50 transition cursor-pointer group"
           >
             <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-lg w-max mb-3 group-hover:scale-105 transition">
@@ -169,14 +165,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectLesson, on
             <h3 className="font-semibold text-slate-100 text-sm mb-1 group-hover:text-emerald-400 transition">
               SQL Playground
             </h3>
-            <p className="text-xs text-slate-400 mb-3">In-browser SQLite WASM relational join playground.</p>
+            <p className="text-xs text-slate-400 mb-3">Genuine SQLite WASM relational join sandbox.</p>
             <span className="text-[11px] font-mono text-emerald-400 flex items-center group-hover:translate-x-1 transition">
               Launch Lab <ArrowRight className="w-3 h-3 ml-1" />
             </span>
-          </div>
+          </Link>
 
-          <div
-            onClick={() => onNavigateTab('code-lab')}
+          <Link
+            to="/labs/code"
             className="p-5 rounded-xl bg-[#111827] border border-slate-800 hover:border-violet-500/50 transition cursor-pointer group"
           >
             <div className="p-2.5 bg-violet-500/10 text-violet-400 rounded-lg w-max mb-3 group-hover:scale-105 transition">
@@ -185,11 +181,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectLesson, on
             <h3 className="font-semibold text-slate-100 text-sm mb-1 group-hover:text-violet-400 transition">
               Code Sandbox
             </h3>
-            <p className="text-xs text-slate-400 mb-3">Isolated C, C++, and Python compilation runner.</p>
+            <p className="text-xs text-slate-400 mb-3">Pyodide WASM Python runner + C/C++ gateway.</p>
             <span className="text-[11px] font-mono text-violet-400 flex items-center group-hover:translate-x-1 transition">
               Launch Lab <ArrowRight className="w-3 h-3 ml-1" />
             </span>
-          </div>
+          </Link>
         </div>
       </div>
 
@@ -200,12 +196,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectLesson, on
             <h2 className="text-lg font-bold text-slate-100">Core Subject Catalog</h2>
             <p className="text-xs text-slate-400">Structured curricula designed with concept-before-syntax</p>
           </div>
-          <button
-            onClick={() => onNavigateTab('explore')}
+          <Link
+            to="/explore"
             className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center"
           >
             Browse All Subjects <ArrowRight className="w-3 h-3 ml-1" />
-          </button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -214,7 +210,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectLesson, on
               key={sub.id}
               onClick={() => {
                 const subLesson = LESSONS.find(l => l.id.startsWith(sub.slug)) || LESSONS[0];
-                onSelectLesson(subLesson.id);
+                navigate(`/lessons/${subLesson.id}`);
               }}
               className="p-5 rounded-xl bg-[#111827] border border-slate-800 hover:border-slate-700 transition cursor-pointer group"
             >

@@ -355,3 +355,25 @@ The core visual shell, design system tokens, responsive layout, and educational 
 - **Content Authoring**: Safe to proceed for theoretical explanations, algorithm diagrams, comparisons, and quizzes.
 - **Interactive Labs**: Must be upgraded to real Web Workers (SQLite WASM and Pyodide) before advertising them as functional coding laboratories to educators and students.
 - **Architecture Documentation**: Must be updated to reflect the actual repository reality to prevent onboarding confusion for future open-source contributors.
+
+
+---
+
+## 13. Phase 2A Remediation Verification Addendum
+
+*Status as of Phase 2A Completion (November 3, 2026):*
+
+All P0 and P1 issues discovered during the Phase 1.5 audit have been systematically resolved:
+
+| Audit Finding | Original Priority | Remediated In Phase 2A | Current Verified Reality |
+| :--- | :---: | :---: | :--- |
+| **P0-1: Mock Code Execution** | **P0** | **RESOLVED** | Implemented genuine Python 3.12 WebAssembly execution via Pyodide in `src/workers/python.worker.ts`. Accurately labeled C & C++ as awaiting remote compiler gateway. Removed all fake metrics and deceptive isolation claims. |
+| **P0-2: Fake SQL Sandbox** | **P0** | **RESOLVED** | Implemented authentic SQLite WASM engine (`sql.js`) in `src/workers/sqlite.worker.ts`. Substring matching eliminated. Full SQL syntax, CRUD operations, joins, group by, aggregates, and real syntax errors verified. |
+| **P1-1: Missing Browser URL Routing** | **P1** | **RESOLVED** | Integrated `react-router-dom` with complete path routing (`/`, `/explore`, `/languages`, `/subjects`, `/lessons/:id`, `/labs/:id`, `/practice`, `/glossary`). Browser refresh and back/forward history work seamlessly. |
+| **P1-2: Code Forwarding from Lessons** | **P1** | **RESOLVED** | Lesson code blocks forwarding code & language to `/labs/code` via router state. Playground pre-fills editor with lesson code without dropping parameters. |
+| **P1-3: Missing Test & Lint Suite** | **P1** | **RESOLVED** | Installed Vitest, React Testing Library, ESLint, and jsdom. 29 automated tests pass. Root `pnpm test` and `pnpm lint` scripts work cleanly. |
+| **P1-4: `packages/shared-types` Tooling** | **P1** | **RESOLVED** | Added TypeScript and Zod to `packages/shared-types`. `pnpm typecheck` validates both packages independently. |
+| **P2-1: First-time User Pre-completion Bug** | **P2** | **RESOLVED** | Clean initial state initialized to empty `Set<string>()` in `ProgressContext.tsx`. |
+| **P2-2: Missing Zod Runtime Validation** | **P2** | **RESOLVED** | Implemented comprehensive Zod schemas in `@lumenode/shared-types`. `LessonRoutePage` validates all incoming lesson data before rendering. |
+| **P2-3: Silent Dropping of Malformed Blocks** | **P2** | **RESOLVED** | Replaced `default: return null` with an authoring error boundary callout in `LessonRenderer.tsx`. |
+| **P3-1: Educational Trace Disclaimers** | **P3** | **RESOLVED** | Added prominent disclaimers in `DSAVisualizer` and `MemorySimulator` clarifying that memory addresses are idealized educational illustrations. |

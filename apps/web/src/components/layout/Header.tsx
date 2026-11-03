@@ -1,16 +1,21 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Sparkles, Search, GitBranch, Menu } from 'lucide-react';
 import { useProgress } from '../../context/ProgressContext';
-import { ActiveTab } from '../../types';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
-  onNavigateTab: (tab: ActiveTab) => void;
-  activeTab: ActiveTab;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onNavigateTab, activeTab }) => {
-  const { bookmarks, completedLessons } = useProgress();
+export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
+  const { completedLessons } = useProgress();
+  const location = useLocation();
+
+  const isNavActive = (path: string) => {
+    if (path === '/' && location.pathname === '/') return true;
+    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    return false;
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full h-16 bg-[#0A0F1D]/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-6 flex items-center justify-between">
@@ -18,13 +23,13 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onNavigateTab, 
       <div className="flex items-center space-x-4">
         <button
           onClick={onToggleSidebar}
-          className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg lg:hidden"
+          className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg lg:hidden cursor-pointer"
         >
           <Menu className="w-5 h-5" />
         </button>
 
-        <div
-          onClick={() => onNavigateTab('dashboard')}
+        <Link
+          to="/"
           className="flex items-center space-x-2.5 cursor-pointer group"
         >
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:scale-105 transition">
@@ -38,51 +43,51 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onNavigateTab, 
               Explore. Understand. Build.
             </span>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Middle: Quick navigation */}
       <nav className="hidden md:flex items-center space-x-1">
-        <button
-          onClick={() => onNavigateTab('dashboard')}
+        <Link
+          to="/"
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-            activeTab === 'dashboard'
+            isNavActive('/') && location.pathname === '/'
               ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
           }`}
         >
           Dashboard
-        </button>
-        <button
-          onClick={() => onNavigateTab('explore')}
+        </Link>
+        <Link
+          to="/explore"
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-            activeTab === 'explore'
+            isNavActive('/explore') || isNavActive('/languages') || isNavActive('/subjects')
               ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
           }`}
         >
           Explore Subjects
-        </button>
-        <button
-          onClick={() => onNavigateTab('dsa-lab')}
+        </Link>
+        <Link
+          to="/labs/dsa"
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-            ['dsa-lab', 'memory-lab', 'sql-lab', 'code-lab'].includes(activeTab)
+            isNavActive('/labs')
               ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
           }`}
         >
           Laboratories
-        </button>
-        <button
-          onClick={() => onNavigateTab('practice')}
+        </Link>
+        <Link
+          to="/practice"
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-            activeTab === 'practice'
+            isNavActive('/practice')
               ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
           }`}
         >
           Practice
-        </button>
+        </Link>
       </nav>
 
       {/* Right: Actions */}
@@ -92,13 +97,13 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onNavigateTab, 
           <span>{completedLessons.size} completed</span>
         </div>
 
-        <button
-          onClick={() => onNavigateTab('explore')}
+        <Link
+          to="/explore"
           className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg transition"
           title="Search lessons"
         >
           <Search className="w-4 h-4" />
-        </button>
+        </Link>
 
         <a
           href="https://github.com/your-username/lumenode"
