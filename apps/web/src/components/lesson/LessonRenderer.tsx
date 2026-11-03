@@ -9,6 +9,10 @@ import {
   AlertOctagon,
   Target,
   Code2,
+  Network,
+  Layers,
+  Database,
+  Zap,
 } from 'lucide-react';
 import { Lesson, ContentBlock } from '../../types';
 import { CodeBlock } from './CodeBlock';
@@ -330,6 +334,64 @@ export const LessonRenderer: React.FC<LessonRendererProps> = ({
       <div className="space-y-6">
         {lesson.sections.map((section, idx) => renderBlock(section, idx))}
       </div>
+
+      {/* Interactive Laboratory Handoff */}
+      {(() => {
+        let labRoute = '/labs/code';
+        let labTitle = 'Interactive Code Sandbox';
+        let labDesc = 'Run, modify, and test native programs with instant output.';
+        let labIcon = <Code2 className="w-5 h-5 text-violet-400" />;
+
+        if (lesson.conceptId.startsWith('dsa')) {
+          labRoute = '/labs/dsa';
+          labTitle = 'DSA Algorithm & Data Structure Lab';
+          labDesc = 'Step through BST operations, AVL rotations, B+ Tree index splits, and linked lists.';
+          labIcon = <Network className="w-5 h-5 text-blue-400" />;
+        } else if (
+          lesson.conceptId.startsWith('memory') ||
+          lesson.conceptId.startsWith('c.pointers') ||
+          lesson.conceptId.startsWith('c.types') ||
+          lesson.conceptId.startsWith('c.memory')
+        ) {
+          labRoute = '/labs/memory';
+          labTitle = 'Memory & Pointer Simulator';
+          labDesc = 'Inspect virtual address bytes, activation records, and stack frame pointer dereferences.';
+          labIcon = <Layers className="w-5 h-5 text-cyan-400" />;
+        } else if (lesson.conceptId.startsWith('sql') || lesson.conceptId.startsWith('db')) {
+          labRoute = '/labs/sql';
+          labTitle = 'SQLite WASM Playground';
+          labDesc = 'Execute relational SQL queries against live in-memory databases with schema inspection.';
+          labIcon = <Database className="w-5 h-5 text-emerald-400" />;
+        }
+
+        return (
+          <div className="mt-10 p-5 rounded-2xl bg-gradient-to-r from-slate-900/90 to-[#0F172A] border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center space-x-3.5">
+              <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700/60 shrink-0">
+                {labIcon}
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <h4 className="text-sm font-bold text-slate-100">{labTitle}</h4>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    Hands-on Lab
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">{labDesc}</p>
+              </div>
+            </div>
+
+            <Link
+              to={labRoute}
+              className="inline-flex items-center space-x-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-semibold border border-slate-700 transition shrink-0"
+            >
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <span>Launch Lab</span>
+              <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </Link>
+          </div>
+        );
+      })()}
 
       {/* Footer Navigation */}
       <div className="mt-12 pt-8 border-t border-slate-800 flex items-center justify-between">
