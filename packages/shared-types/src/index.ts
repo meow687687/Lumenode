@@ -403,6 +403,68 @@ export const BookmarkSchema = z.object({
 });
 export type Bookmark = z.infer<typeof BookmarkSchema>;
 
+// Mastery Tracking Types
+export const MasteryStateSchema = z.enum([
+  'not_started',
+  'learning',
+  'practicing',
+  'demonstrated',
+  'needs_review',
+]);
+export type MasteryState = z.infer<typeof MasteryStateSchema>;
+
+export const ExerciseAttemptSchema = z.object({
+  attemptId: z.string(),
+  exerciseId: z.string(),
+  conceptId: z.string(),
+  type: ExerciseTypeSchema,
+  passed: z.boolean(),
+  score: z.number().min(0).max(100),
+  hintsUsed: z.number().int().nonnegative().default(0),
+  userAnswer: z.any().optional(),
+  feedback: z.string().optional(),
+  timestamp: z.number(),
+});
+export type ExerciseAttempt = z.infer<typeof ExerciseAttemptSchema>;
+
+export const ConceptMasteryRecordSchema = z.object({
+  conceptId: z.string(),
+  state: MasteryStateSchema,
+  lessonCompleted: z.boolean().default(false),
+  attemptsCount: z.number().int().nonnegative().default(0),
+  passedCount: z.number().int().nonnegative().default(0),
+  consecutivePasses: z.number().int().nonnegative().default(0),
+  bestScore: z.number().min(0).max(100).default(0),
+  lastScore: z.number().min(0).max(100).default(0),
+  lastAttemptAt: z.number().optional(),
+  demonstratedAt: z.number().optional(),
+  decayAlert: z.boolean().default(false),
+  evidenceHistory: z.array(ExerciseAttemptSchema).default([]),
+});
+export type ConceptMasteryRecord = z.infer<typeof ConceptMasteryRecordSchema>;
+
+export const LearningRecommendationSchema = z.object({
+  id: z.string(),
+  conceptId: z.string(),
+  conceptTitle: z.string(),
+  type: z.enum(['prerequisite_remediation', 'practice_reinforcement', 'next_in_path', 'review_decayed']),
+  reason: z.string(),
+  urgency: z.enum(['high', 'medium', 'low']),
+  suggestedLessonId: z.string().optional(),
+  suggestedExerciseId: z.string().optional(),
+});
+export type LearningRecommendation = z.infer<typeof LearningRecommendationSchema>;
+
+export const LearnerProfileSnapshotSchema = z.object({
+  version: z.number().int().positive(),
+  exportedAt: z.number(),
+  completedLessons: z.array(z.string()),
+  bookmarks: z.array(BookmarkSchema),
+  masteryRecords: z.record(ConceptMasteryRecordSchema),
+  activeLessonId: z.string(),
+});
+export type LearnerProfileSnapshot = z.infer<typeof LearnerProfileSnapshotSchema>;
+
 // Code Execution Adapter Types
 export const ExecutionStatusSchema = z.enum([
   'success',

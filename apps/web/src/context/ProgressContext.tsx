@@ -1,119 +1,151 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Bookmark } from '../types';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import {
+  Bookmark,
+  ConceptMasteryRecord,
+  ExerciseType,
+  LearningRecommendation,
+  LearnerProfileSnapshot,
+} from '@lumenode/shared-types';
+import { StorageService } from '../services/persistence/storageService';
+import { MasteryEngine } from '../services/mastery/masteryEngine';
+import { RecommendationEngine } from '../services/recommendations/recommendationEngine';
+import { CONCEPTS } from '../data/concepts';
+import { LESSONS } from '../data/lessons';
 
 interface ProgressContextType {
   completedLessons: Set<string>;
   quizScores: Record<string, { score: number; passed: boolean }>;
   bookmarks: Bookmark[];
+  masteryRecords: Record<string, ConceptMasteryRecord>;
+  recommendations: LearningRecommendation[];
   markLessonComplete: (lessonId: string) => void;
-  recordQuizScore: (exerciseId: string, passed: boolean) => void;
+  recordQuizScore: (exerciseId: string, passed: boolean, score?: number) => void;
+  recordExerciseAttempt: (
+    conceptId: string,
+    attempt: {
+      exerciseId: string;
+      type: ExerciseType;
+      passed: boolean;
+      score: number;
+      hintsUsed?: number;
+      feedback?: string;
+      userAnswer?: unknown;
+    }
+  ) => void;
   toggleBookmark: (item: { id: string; type: Bookmark['targetType']; title: string; url: string }) => void;
   isBookmarked: (id: string) => boolean;
   activeLessonId: string;
   setActiveLessonId: (id: string) => void;
   resetAllProgress: () => void;
+  exportBackup: () => LearnerProfileSnapshot;
+  importBackup: (jsonString: string) => { success: boolean; error?: string };
 }
-
-const STORAGE_KEYS = {
-  COMPLETED_LESSONS: 'lumenode_completed_lessons_v1',
-  QUIZ_SCORES: 'lumenode_quiz_scores_v1',
-  BOOKMARKS: 'lumenode_bookmarks_v1',
-  ACTIVE_LESSON: 'lumenode_active_lesson_v1',
-};
 
 const ProgressContext = createContext<ProgressContextType | undefined>(undefined);
 
 export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // First-time users start with an empty progress set (zero lessons pre-completed)
-  const [completedLessons, setCompletedLessons] = useState<Set<string>>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.COMPLETED_LESSONS);
-      return saved ? new Set<string>(JSON.parse(saved)) : new Set<string>();
-    } catch (e) {
-      console.warn('ProgressContext: localStorage unavailable, starting clean state', e);
-      return new Set<string>();
-    }
-  });
+  // Initialize from storage service with migration
+  const [initialData] = useState(() => StorageService.initialize());
 
-  const [quizScores, setQuizScores] = useState<Record<string, { score: number; passed: boolean }>>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.QUIZ_SCORES);
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
+  const [completedLessons, setCompletedLessons] = useState<Set<string>>(initialData.completedLessons);
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>(initialData.bookmarks);
+  const [masteryRecords, setMasteryRecords] = useState<Record<string, ConceptMasteryRecord>>(initialData.masteryRecords);
+  const [activeLessonId, setActiveLessonId] = useState<string>(initialData.activeLessonId);
 
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.BOOKMARKS);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Backward-compatible quiz scores map derived from mastery evidence
+  const quizScores = useMemo(() => {
+    const scores: Record<string, { score: number; passed: boolean }> = {};
+    Object.values(masteryRecords).forEach((record) => {
+      record.evidenceHistory.forEach((attempt) => {
+        scores[attempt.exerciseId] = {
+          score: attempt.score,
+          passed: attempt.passed,
+        };
+      });
+    });
+    return scores;
+  }, [masteryRecords]);
 
-  const [activeLessonId, setActiveLessonId] = useState<string>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.ACTIVE_LESSON);
-      return saved || 'c-pointers-basics';
-    } catch {
-      return 'c-pointers-basics';
-    }
-  });
-
+  // Save changes
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.COMPLETED_LESSONS, JSON.stringify(Array.from(completedLessons)));
-    } catch (e) {
-      console.warn('Failed to save completed lessons', e);
-    }
+    StorageService.saveCompletedLessons(completedLessons);
   }, [completedLessons]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.QUIZ_SCORES, JSON.stringify(quizScores));
-    } catch (e) {
-      console.warn('Failed to save quiz scores', e);
-    }
-  }, [quizScores]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.BOOKMARKS, JSON.stringify(bookmarks));
-    } catch (e) {
-      console.warn('Failed to save bookmarks', e);
-    }
+    StorageService.saveBookmarks(bookmarks);
   }, [bookmarks]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.ACTIVE_LESSON, activeLessonId);
-    } catch (e) {
-      console.warn('Failed to save active lesson', e);
-    }
+    StorageService.saveMasteryRecords(masteryRecords);
+  }, [masteryRecords]);
+
+  useEffect(() => {
+    StorageService.saveActiveLessonId(activeLessonId);
   }, [activeLessonId]);
 
+  // Mark lesson complete and update corresponding concept mastery
   const markLessonComplete = (lessonId: string) => {
-    setCompletedLessons(prev => {
+    setCompletedLessons((prev) => {
       const next = new Set(prev);
       next.add(lessonId);
       return next;
     });
+
+    const lesson = LESSONS.find((l) => l.id === lessonId);
+    if (lesson) {
+      setMasteryRecords((prev) => {
+        const current = prev[lesson.conceptId] || MasteryEngine.createDefaultRecord(lesson.conceptId);
+        const updated = MasteryEngine.recordLessonCompletion(current);
+        return {
+          ...prev,
+          [lesson.conceptId]: updated,
+        };
+      });
+    }
   };
 
-  const recordQuizScore = (exerciseId: string, passed: boolean) => {
-    setQuizScores(prev => ({
-      ...prev,
-      [exerciseId]: { score: passed ? 100 : 0, passed }
-    }));
+  // Record exercise attempt
+  const recordExerciseAttempt = (
+    conceptId: string,
+    attempt: {
+      exerciseId: string;
+      type: ExerciseType;
+      passed: boolean;
+      score: number;
+      hintsUsed?: number;
+      feedback?: string;
+      userAnswer?: unknown;
+    }
+  ) => {
+    setMasteryRecords((prev) => {
+      const current = prev[conceptId] || MasteryEngine.createDefaultRecord(conceptId);
+      const updated = MasteryEngine.recordExerciseAttempt(current, attempt);
+      return {
+        ...prev,
+        [conceptId]: updated,
+      };
+    });
+  };
+
+  // Backward-compatible quiz score recording
+  const recordQuizScore = (exerciseId: string, passed: boolean, score: number = passed ? 100 : 0) => {
+    // Locate matching concept from exercise or lesson
+    const concept = CONCEPTS.find((c) => c.exerciseIds.includes(exerciseId));
+    const conceptId = concept ? concept.id : exerciseId.replace('quiz-', '');
+
+    recordExerciseAttempt(conceptId, {
+      exerciseId,
+      type: 'mcq',
+      passed,
+      score,
+    });
   };
 
   const toggleBookmark = (item: { id: string; type: Bookmark['targetType']; title: string; url: string }) => {
-    setBookmarks(prev => {
-      const exists = prev.some(b => b.targetId === item.id);
+    setBookmarks((prev) => {
+      const exists = prev.some((b) => b.targetId === item.id);
       if (exists) {
-        return prev.filter(b => b.targetId !== item.id);
+        return prev.filter((b) => b.targetId !== item.id);
       } else {
         return [
           ...prev,
@@ -123,27 +155,42 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             targetType: item.type,
             title: item.title,
             url: item.url,
-            createdAt: Date.now()
-          }
+            createdAt: Date.now(),
+          },
         ];
       }
     });
   };
 
-  const isBookmarked = (id: string) => bookmarks.some(b => b.targetId === id);
+  const isBookmarked = (id: string) => bookmarks.some((b) => b.targetId === id);
 
   const resetAllProgress = () => {
     setCompletedLessons(new Set());
-    setQuizScores({});
     setBookmarks([]);
-    try {
-      localStorage.removeItem(STORAGE_KEYS.COMPLETED_LESSONS);
-      localStorage.removeItem(STORAGE_KEYS.QUIZ_SCORES);
-      localStorage.removeItem(STORAGE_KEYS.BOOKMARKS);
-    } catch (e) {
-      console.warn('Failed to clear storage', e);
-    }
+    setMasteryRecords({});
+    StorageService.clearAll();
   };
+
+  const exportBackup = () => {
+    return StorageService.exportLearnerBackup();
+  };
+
+  const importBackup = (jsonString: string) => {
+    const res = StorageService.importLearnerBackup(jsonString);
+    if (res.success) {
+      const reloaded = StorageService.initialize();
+      setCompletedLessons(reloaded.completedLessons);
+      setBookmarks(reloaded.bookmarks);
+      setMasteryRecords(reloaded.masteryRecords);
+      setActiveLessonId(reloaded.activeLessonId);
+    }
+    return res;
+  };
+
+  // Recommendations calculated via deterministic DAG analysis
+  const recommendations = useMemo(() => {
+    return RecommendationEngine.generateRecommendations(masteryRecords, CONCEPTS, LESSONS);
+  }, [masteryRecords]);
 
   return (
     <ProgressContext.Provider
@@ -151,13 +198,18 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         completedLessons,
         quizScores,
         bookmarks,
+        masteryRecords,
+        recommendations,
         markLessonComplete,
         recordQuizScore,
+        recordExerciseAttempt,
         toggleBookmark,
         isBookmarked,
         activeLessonId,
         setActiveLessonId,
         resetAllProgress,
+        exportBackup,
+        importBackup,
       }}
     >
       {children}

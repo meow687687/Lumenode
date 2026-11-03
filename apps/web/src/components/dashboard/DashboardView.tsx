@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Play, 
@@ -11,19 +11,89 @@ import {
   Database, 
   ArrowRight, 
   CheckCircle2, 
-  Bookmark, 
   Award,
   Zap,
-  Sparkles
+  Sparkles,
+  Download,
+  Upload,
+  RotateCcw,
+  Compass,
+  AlertTriangle,
+  Flame,
+  BookOpen
 } from 'lucide-react';
 import { SUBJECTS } from '../../data/subjects';
 import { LESSONS } from '../../data/lessons';
+import { CONCEPTS } from '../../data/concepts';
 import { useProgress } from '../../context/ProgressContext';
 
 export const DashboardView: React.FC = () => {
-  const { completedLessons, bookmarks, activeLessonId } = useProgress();
+  const { 
+    completedLessons, 
+    activeLessonId, 
+    masteryRecords, 
+    recommendations, 
+    exportBackup, 
+    importBackup, 
+    resetAllProgress 
+  } = useProgress();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importStatus, setImportStatus] = useState<string | null>(null);
+
   const currentLesson = LESSONS.find(l => l.id === activeLessonId) || LESSONS[0];
+
+  // Count mastery states across all concepts
+  const masteryCounts = {
+    demonstrated: 0,
+    practicing: 0,
+    learning: 0,
+    needs_review: 0,
+    not_started: 0,
+  };
+
+  CONCEPTS.forEach(c => {
+    const rec = masteryRecords[c.id];
+    if (!rec || rec.state === 'not_started') {
+      masteryCounts.not_started++;
+    } else {
+      masteryCounts[rec.state]++;
+    }
+  });
+
+  const handleExportBackup = () => {
+    const snapshot = exportBackup();
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(snapshot, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `lumenode-backup-${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        const res = importBackup(text);
+        if (res.success) {
+          setImportStatus('Backup restored successfully!');
+          setTimeout(() => setImportStatus(null), 3000);
+        } else {
+          setImportStatus(`Import failed: ${res.error}`);
+        }
+      } catch (_err) {
+        setImportStatus('Failed reading backup file');
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const getSubjectIcon = (iconName: string) => {
     switch (iconName) {
@@ -80,38 +150,101 @@ export const DashboardView: React.FC = () => {
         <div className="absolute right-0 top-0 bottom-0 w-96 bg-gradient-to-l from-blue-600/10 to-transparent pointer-events-none" />
       </div>
 
-      {/* Progress Stats Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-5 rounded-xl bg-[#111827] border border-slate-800 flex items-center space-x-4">
-          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
-            <CheckCircle2 className="w-6 h-6" />
+      {/* Progress & Concept Mastery Summary */}
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="p-4 rounded-xl bg-[#111827] border border-slate-800 flex items-center space-x-3">
+            <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-lg">
+              <Award className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-xl font-bold font-mono text-emerald-400">{masteryCounts.demonstrated}</div>
+              <div className="text-xs text-slate-400">Mastered</div>
+            </div>
           </div>
-          <div>
-            <div className="text-2xl font-bold font-mono text-slate-100">{completedLessons.size}</div>
-            <div className="text-xs text-slate-400">Completed Lessons</div>
-          </div>
-        </div>
 
-        <div className="p-5 rounded-xl bg-[#111827] border border-slate-800 flex items-center space-x-4">
-          <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl">
-            <Award className="w-6 h-6" />
+          <div className="p-4 rounded-xl bg-[#111827] border border-slate-800 flex items-center space-x-3">
+            <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-lg">
+              <Flame className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-xl font-bold font-mono text-blue-400">{masteryCounts.practicing}</div>
+              <div className="text-xs text-slate-400">Practicing</div>
+            </div>
           </div>
-          <div>
-            <div className="text-2xl font-bold font-mono text-slate-100">{LESSONS.length}</div>
-            <div className="text-xs text-slate-400">Curated Initial Lessons</div>
-          </div>
-        </div>
 
-        <div className="p-5 rounded-xl bg-[#111827] border border-slate-800 flex items-center space-x-4">
-          <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
-            <Bookmark className="w-6 h-6" />
+          <div className="p-4 rounded-xl bg-[#111827] border border-slate-800 flex items-center space-x-3">
+            <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-lg">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-xl font-bold font-mono text-amber-400">{masteryCounts.needs_review}</div>
+              <div className="text-xs text-slate-400">Needs Review</div>
+            </div>
           </div>
-          <div>
-            <div className="text-2xl font-bold font-mono text-slate-100">{bookmarks.length}</div>
-            <div className="text-xs text-slate-400">Bookmarked Concepts</div>
+
+          <div className="p-4 rounded-xl bg-[#111827] border border-slate-800 flex items-center space-x-3">
+            <div className="p-2.5 bg-slate-800 text-slate-300 rounded-lg">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-xl font-bold font-mono text-slate-200">{completedLessons.size} / {LESSONS.length}</div>
+              <div className="text-xs text-slate-400">Lessons Finished</div>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Recommended Learning Path */}
+      {recommendations.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <Compass className="w-5 h-5 text-blue-400" />
+            <h2 className="text-lg font-bold text-slate-100">Recommended Next Steps</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {recommendations.slice(0, 3).map((rec) => {
+              const targetLessonId = rec.suggestedLessonId || currentLesson.id;
+              const recLesson = LESSONS.find(l => l.id === targetLessonId) || currentLesson;
+              return (
+                <div
+                  key={rec.id}
+                  className="p-5 rounded-xl bg-[#111827] border border-slate-800 hover:border-blue-500/50 transition flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium border ${
+                        rec.urgency === 'high'
+                          ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                          : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                      }`}>
+                        {rec.type.replace('_', ' ')}
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-400">
+                        {recLesson.difficulty}
+                      </span>
+                    </div>
+
+                    <h3 className="font-semibold text-slate-100 text-sm">{rec.conceptTitle}</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">{rec.reason}</p>
+                  </div>
+
+                  <div className="pt-4 mt-3 border-t border-slate-800/80">
+                    <Link
+                      to={`/lessons/${targetLessonId}`}
+                      className="inline-flex items-center text-xs font-semibold text-blue-400 hover:text-blue-300"
+                    >
+                      <BookOpen className="w-3.5 h-3.5 mr-1" />
+                      Study Concept <ArrowRight className="w-3 h-3 ml-1" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Interactive Laboratories Showcase */}
       <div>
@@ -133,7 +266,7 @@ export const DashboardView: React.FC = () => {
             <h3 className="font-semibold text-slate-100 text-sm mb-1 group-hover:text-blue-400 transition">
               DSA Visualizer
             </h3>
-            <p className="text-xs text-slate-400 mb-3">Linked lists, binary search & step traversal.</p>
+            <p className="text-xs text-slate-400 mb-3">Linked lists, BST, AVL trees & B+ tree index.</p>
             <span className="text-[11px] font-mono text-blue-400 flex items-center group-hover:translate-x-1 transition">
               Launch Lab <ArrowRight className="w-3 h-3 ml-1" />
             </span>
@@ -149,7 +282,7 @@ export const DashboardView: React.FC = () => {
             <h3 className="font-semibold text-slate-100 text-sm mb-1 group-hover:text-cyan-400 transition">
               Memory & Pointer Sim
             </h3>
-            <p className="text-xs text-slate-400 mb-3">Stack frames, heap blocks & address dereferencing.</p>
+            <p className="text-xs text-slate-400 mb-3">Stack frames, activation records & heap blocks.</p>
             <span className="text-[11px] font-mono text-cyan-400 flex items-center group-hover:translate-x-1 transition">
               Launch Lab <ArrowRight className="w-3 h-3 ml-1" />
             </span>
@@ -236,6 +369,54 @@ export const DashboardView: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Local-first Data Portability / Backup Controls */}
+      <div className="p-5 rounded-xl bg-[#111827] border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h3 className="text-sm font-semibold text-slate-200">Local-First Storage & Data Portability</h3>
+          <p className="text-xs text-slate-400">
+            All your mastery state, bookmarks, and quiz progress stay locally in your browser. Export or restore backups at any time.
+          </p>
+          {importStatus && (
+            <p className="text-xs font-mono text-blue-400 mt-1">{importStatus}</p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImportFile}
+            accept=".json,application/json"
+            className="hidden"
+          />
+          <button
+            onClick={handleExportBackup}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-mono transition border border-slate-700 cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export Backup</span>
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-mono transition border border-slate-700 cursor-pointer"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>Import Backup</span>
+          </button>
+          <button
+            onClick={() => {
+              if (window.confirm('Reset all progress, mastery records, and bookmarks?')) {
+                resetAllProgress();
+              }
+            }}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-red-950/30 hover:bg-red-900/40 text-red-400 rounded-lg text-xs font-mono transition border border-red-900/50 cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset</span>
+          </button>
         </div>
       </div>
     </div>
