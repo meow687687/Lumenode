@@ -8,6 +8,7 @@
 import { TestCase, SupportedLanguageId } from '@lumenode/shared-types';
 import { pythonRunner } from '../pythonRunner';
 import { sqlRunner } from '../sqlRunner';
+import { compilerGateway } from '../compilerGateway';
 
 export type ChallengeLanguage = SupportedLanguageId | 'sql';
 
@@ -38,7 +39,7 @@ export class CodingChallengeRunner {
     language: ChallengeLanguage,
     testCases: TestCase[]
   ): Promise<ChallengeEvaluationReport> {
-    if (language === 'c' || language === 'cpp') {
+    if ((language === 'c' || language === 'cpp') && !compilerGateway.isConfigured()) {
       return {
         language,
         allPassed: false,
@@ -47,7 +48,7 @@ export class CodingChallengeRunner {
         score: 0,
         testResults: [],
         statusMessage:
-          'C/C++ online evaluation is routed to the Compiler Gateway. Local browser compilation is pending WASM/gateway deployment.',
+          'C/C++ execution requires the Compiler Gateway. Configure VITE_COMPILER_GATEWAY_URL to enable remote sandboxed compilation and automated test case evaluation.',
         isCompilerGatewayRequired: true,
       };
     }
@@ -64,7 +65,31 @@ export class CodingChallengeRunner {
       const tc = testCases[i];
       const startTime = performance.now();
 
-      if (language === 'python') {
+      if (language === 'c' || language === 'cpp') {
+        const res = await compilerGateway.execute({
+          sourceCode: code,
+          language,
+          stdin: tc.input,
+          timeoutMs: 6000,
+        });
+
+        const durationMs = res.durationMs || Math.round(performance.now() - startTime);
+        const actualOutput = res.stdout.trim();
+        const expected = tc.expectedOutput.trim();
+        const passed = res.status === 'success' && actualOutput === expected;
+
+        if (passed) passedCount++;
+
+        testResults.push({
+          testIndex: i + 1,
+          input: tc.input,
+          expectedOutput: expected,
+          actualOutput: res.compileOutput || res.stderr || actualOutput,
+          passed,
+          error: res.compileOutput || (res.status !== 'success' ? res.message : undefined),
+          durationMs,
+        });
+      } else if (language === 'python') {
         // Prepend input harness if input is provided
         const wrappedCode = tc.input
           ? `import sys\nfrom io import StringIO\nsys.stdin = StringIO("""${tc.input}""")\n${code}`

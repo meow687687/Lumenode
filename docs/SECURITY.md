@@ -30,19 +30,44 @@ Arbitrary learner code is **never** executed inside the application server proce
 
 ---
 
-## 3. Remote Compiler Sandbox Requirements (Planned Phase 2B for C & C++)
+## 3. Remote Compiler Sandbox Architecture (C & C++ Execution)
 
-Native compiled languages (C and C++) cannot execute safely via client-side interpreted WebAssembly without significant runtime emulation overhead. Their execution is routed to an isolated remote container gateway:
+Native compiled languages (C and C++) require genuine operating system signals (`SIGSEGV`, `SIGBUS`, `SIGFPE`), pointer dereferencing, and accurate memory layouts that cannot be authentically represented in abstract 32-bit linear WebAssembly without misleading students.
 
-1. **Host Isolation**: Hardened container sandboxing (e.g., Linux `cgroups v2`, `namespaces`, and `isolate` / Judge0).
-2. **Network Isolation**: Strict `--net=none` configuration to prevent egress calls, reverse shells, or network scans.
-3. **Resource Ceilings**:
-   - Memory limit: 64 MB maximum address space.
-   - CPU execution limit: 3.0 seconds maximum.
-   - Max file descriptors: 32.
-   - Process limit: 16 maximum threads/subprocesses.
-   - Output buffer cap: 64 KB stdout/stderr truncation.
-4. **Filesystem**: Read-only root with temporary, volatile ramdisk for source compilation and binary execution.
+Their execution is routed to an isolated remote container gateway conforming to the Lumenode Compiler Gateway Protocol (ADR 0004).
+
+### 3.1 Defense-in-Depth Sandboxing Layers
+
+1. **Linux Namespaces (Multi-Vector Process Isolation):**
+   - `PID Namespace`: Execution process has PID 1 inside the sandbox and cannot discover or signal any external processes.
+   - `Mount Namespace`: Sandbox mounts a minimalist root filesystem (`/bin`, `/lib`, `/usr/lib`) with `MS_RDONLY | MS_NODEV | MS_NOSUID`.
+   - `Network Namespace`: Process is assigned an unshared, unconfigured network namespace (`--net=none`) with only a dummy loopback interface, completely preventing socket binds, remote reverse shells, or LAN port scans.
+   - `IPC Namespace`: Isolated shared memory and semaphore segment prevents inter-process messaging with host services.
+   - `UTS Namespace`: Hostname and domain name are anonymized.
+   - `User Namespace`: User mapped to unprivileged `nobody:nogroup` (UID 65534). Root escalation within the container yields zero capabilities outside.
+
+2. **Control Groups v2 (Strict Hardware Resource Ceilings):**
+   - **CPU Quota (`cpu.max`)**: Maximum 2.0 seconds CPU execution time. Maximum 5.0 seconds wall-clock time.
+   - **Memory Ceiling (`memory.max`, `memory.high`)**: Hard ceiling of **64 MB** virtual address space. Any execution exceeding this allocation triggers immediate kernel `OOM-killer` termination and is truthfully reported as `memory_limit_exceeded`.
+   - **Process / Task Limit (`pids.max`)**: Hard ceiling of **16 PIDs** to neutralize fork-bomb exploits (`int main() { while(1) fork(); }`).
+   - **File Descriptor Limit (`RLIMIT_NOFILE`)**: Max 32 concurrent open file handles.
+
+3. **Seccomp System Call Filtering (`SECCOMP_RET_KILL`):**
+   - Execution binaries run with a strict seccomp-bpf whitelist.
+   - Allowed syscalls: Minimal subset required for POSIX runtime execution (`read`, `write`, `fstat`, `mmap`, `mprotect`, `munmap`, `brk`, `exit_group`, `nanosleep`, `clock_gettime`).
+   - Explicitly Blocked / Killed Syscalls:
+     - All socket and network calls (`socket`, `connect`, `bind`, `listen`, `accept`, `sendto`, `recvfrom`).
+     - System administration calls (`reboot`, `mount`, `umount2`, `chroot`, `syslog`, `pivot_root`).
+     - Kernel probing & BPF (`bpf`, `ptrace`, `perf_event_open`, `process_vm_readv`, `process_vm_writev`).
+     - File system modifications outside volatile RAM (`unlink`, `rename`, `chmod`, `chown`).
+
+4. **Ephemeral Ephemeral Storage & RAM Disk:**
+   - Source compilation and binary output occur on an ephemeral `tmpfs` RAM disk with a strict 10 MB cap.
+   - The directory is created with a unique UUID per run and recursively wiped upon process completion or timeout.
+
+5. **Client Transparency & Honest Fallback:**
+   - The frontend `CompilerGatewayClient` verifies gateway availability via health checks.
+   - If the gateway is unconfigured or unreachable, the user interface explicitly indicates this status and provides guidance on running a local Docker gateway container. It **never** fakes execution metrics or fabricates synthetic outputs.
 
 ---
 

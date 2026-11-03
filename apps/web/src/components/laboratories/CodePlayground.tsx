@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Play, Copy, RotateCcw, Check, Terminal, Cpu, Clock, Info, Sparkles } from 'lucide-react';
 import { SupportedLanguageId, ExecutionResult } from '../../types';
 import { pythonRunner } from '../../services/pythonRunner';
+import { compilerGateway } from '../../services/compilerGateway';
 
 interface CodePlaygroundProps {
   initialCode?: string;
@@ -96,19 +97,93 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
   const handleRun = async () => {
     if (lang === 'c' || lang === 'cpp') {
-      setOutput(
-        `[STATUS: COMPILER GATEWAY PENDING]\n` +
-        `C (GCC) and C++ (Clang) require remote sandboxed execution container infrastructure (Phase 2B).\n\n` +
-        `To run code directly in the browser right now, switch to the "Python (Pyodide)" tab above!`
-      );
-      setExecutionResult({
-        executionId: `pending-${Date.now()}`,
-        language: lang,
-        status: 'unsupported',
-        stdout: '',
-        stderr: '',
-        durationMs: 0,
-      });
+      setIsRunning(true);
+      setOutput(`Submitting ${lang.toUpperCase()} source to Compiler Gateway...`);
+
+      try {
+        const res = await compilerGateway.execute({
+          sourceCode: code,
+          language: lang,
+          timeoutMs: 8000,
+        });
+
+        if (res.status === 'gateway_not_configured') {
+          setOutput(
+            `[STATUS: COMPILER GATEWAY NOT CONFIGURED]\n\n` +
+            `${res.message}\n\n` +
+            `To enable remote execution:\n` +
+            `1. Start local runner: docker run -p 2358:2358 judge0/judge0:latest\n` +
+            `2. Configure: VITE_COMPILER_GATEWAY_URL=http://localhost:2358\n\n` +
+            `To test genuine execution right now in-browser, switch to the "Python (Pyodide)" tab!`
+          );
+          setExecutionResult({
+            executionId: `unconfigured-${Date.now()}`,
+            language: lang,
+            status: 'unsupported',
+            stdout: '',
+            stderr: '',
+            durationMs: 0,
+          });
+          return;
+        }
+
+        if (res.status === 'gateway_unreachable') {
+          setOutput(`[STATUS: GATEWAY UNREACHABLE]\n\n${res.message}`);
+          setExecutionResult({
+            executionId: `unreachable-${Date.now()}`,
+            language: lang,
+            status: 'runtime_error',
+            stdout: '',
+            stderr: res.message,
+            durationMs: res.durationMs,
+          });
+          return;
+        }
+
+        let formattedOutput = '';
+        if (res.compileOutput) {
+          formattedOutput += `[COMPILER OUTPUT]:\n${res.compileOutput}\n\n`;
+        }
+        if (res.stdout) {
+          formattedOutput += res.stdout;
+        }
+        if (res.stderr) {
+          formattedOutput += `\n[STDERR]:\n${res.stderr}`;
+        }
+        if (res.signal) {
+          formattedOutput += `\n[FATAL SIGNAL]: ${res.signal} (${res.message})`;
+        }
+        if (!formattedOutput) {
+          formattedOutput = `(Program exited with code ${res.exitCode ?? 0} and produced no output)`;
+        }
+
+        setOutput(formattedOutput);
+        setExecutionResult({
+          executionId: `exec-${Date.now()}`,
+          language: lang,
+          status:
+            res.status === 'compilation_error'
+              ? 'compilation_error'
+              : res.status === 'time_limit_exceeded'
+                ? 'timeout'
+                : res.status === 'memory_limit_exceeded'
+                  ? 'limit_exceeded'
+                  : res.status === 'runtime_error'
+                    ? 'runtime_error'
+                    : 'success',
+          stdout: res.stdout,
+          stderr: res.stderr,
+          error: res.compileOutput || (res.signal ? `Signal: ${res.signal}` : undefined),
+          exitCode: res.exitCode,
+          durationMs: res.durationMs,
+          memoryKb: res.memoryKb,
+        });
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setOutput(`Compiler gateway error: ${msg}`);
+      } finally {
+        setIsRunning(false);
+      }
       return;
     }
 
@@ -135,8 +210,9 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
         }
 
         setOutput(formattedOutput);
-      } catch (err: any) {
-        setOutput(`Execution worker error: ${err.message || String(err)}`);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setOutput(`Execution worker error: ${msg}`);
       } finally {
         setIsRunning(false);
       }

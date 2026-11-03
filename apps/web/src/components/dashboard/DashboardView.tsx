@@ -87,7 +87,7 @@ export const DashboardView: React.FC = () => {
         } else {
           setImportStatus(`Import failed: ${res.error}`);
         }
-      } catch (_err) {
+      } catch {
         setImportStatus('Failed reading backup file');
       }
     };
