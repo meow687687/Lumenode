@@ -222,6 +222,18 @@ export const ContentBlockSchema = z.discriminatedUnion('type', [
 ]);
 export type ContentBlock = z.infer<typeof ContentBlockSchema>;
 
+export const LessonTemplateTypeSchema = z.enum([
+  'fundamentals',
+  'data-structures',
+  'algorithms',
+  'oop',
+  'dbms',
+  'memory-systems',
+  'mathematical',
+  'custom',
+]);
+export type LessonTemplateType = z.infer<typeof LessonTemplateTypeSchema>;
+
 export const LessonSchema = z.object({
   id: z.string().min(1),
   conceptId: z.string().min(1),
@@ -230,6 +242,7 @@ export const LessonSchema = z.object({
   slug: z.string().min(1),
   summary: z.string(),
   difficulty: DifficultyLevelSchema,
+  templateType: LessonTemplateTypeSchema.optional(),
   estimatedMinutes: z.number().positive(),
   order: z.number().int().nonnegative(),
   learningObjectives: z.array(z.string()).default([]),
@@ -267,9 +280,13 @@ export type VisualSequence<TState = unknown> = Omit<z.infer<typeof VisualSequenc
 // Exercise and Assessment Schemas
 export const ExerciseTypeSchema = z.enum([
   'mcq',
+  'fill_blank',
   'predict_output',
   'find_error',
+  'debug_program',
+  'trace_algorithm',
   'coding',
+  'explain_concept',
 ]);
 export type ExerciseType = z.infer<typeof ExerciseTypeSchema>;
 
@@ -279,6 +296,21 @@ export const MCQOptionSchema = z.object({
   explanation: z.string(),
 });
 export type MCQOption = z.infer<typeof MCQOptionSchema>;
+
+export const TestCaseSchema = z.object({
+  input: z.string(),
+  expectedOutput: z.string(),
+  explanation: z.string().optional(),
+});
+export type TestCase = z.infer<typeof TestCaseSchema>;
+
+export const FillBlankItemSchema = z.object({
+  id: z.string(),
+  answer: z.string(),
+  acceptedVariants: z.array(z.string()).default([]),
+  explanation: z.string().optional(),
+});
+export type FillBlankItem = z.infer<typeof FillBlankItemSchema>;
 
 export const ExerciseSchema = z.object({
   id: z.string(),
@@ -296,6 +328,10 @@ export const ExerciseSchema = z.object({
   correctOptionId: z.string().optional(),
   expectedOutput: z.string().optional(),
   explanation: z.string(),
+  hints: z.array(z.string()).optional(),
+  starterCode: z.string().optional(),
+  testCases: z.array(TestCaseSchema).optional(),
+  blanks: z.array(FillBlankItemSchema).optional(),
 });
 export type Exercise = z.infer<typeof ExerciseSchema>;
 

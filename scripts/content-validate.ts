@@ -16,6 +16,7 @@ import {
   ModuleSchema,
   TopicSchema,
   LessonSchema,
+  ExerciseSchema,
   safeValidateConcept,
   safeValidateLesson,
 } from '../packages/shared-types/src/index';
@@ -23,6 +24,7 @@ import { CONCEPTS } from '../apps/web/src/data/concepts';
 import { MODULES, TOPICS } from '../apps/web/src/data/modules';
 import { LESSONS } from '../apps/web/src/data/lessons';
 import { SUBJECTS } from '../apps/web/src/data/subjects';
+import { EXERCISES } from '../apps/web/src/data/quizzes';
 
 interface ValidationResult {
   errors: string[];
@@ -118,6 +120,15 @@ export function validateCurriculum(options: { checkLinksOnly?: boolean } = {}): 
         errors.push(`Lesson schema error in "${lesson.id}": ${res.error.message}`);
       }
 
+      // Educational Completeness Audit
+      if (lesson.learningObjectives.length < 2) {
+        warnings.push(`Lesson "${lesson.id}" has fewer than 2 learning objectives (${lesson.learningObjectives.length} found).`);
+      }
+      const hasMarkdown = lesson.sections.some(s => s.type === 'markdown');
+      if (!hasMarkdown) {
+        errors.push(`Lesson "${lesson.id}" lacks foundational explanation (no markdown blocks found).`);
+      }
+
       // Check content blocks internal sanity
       for (let i = 0; i < lesson.sections.length; i++) {
         const block = lesson.sections[i];
@@ -139,6 +150,20 @@ export function validateCurriculum(options: { checkLinksOnly?: boolean } = {}): 
           if (!block.formula || block.formula.trim().length === 0) {
             errors.push(`Lesson "${lesson.id}" math block at index ${i} has empty formula`);
           }
+        }
+      }
+    }
+
+    // Exercises
+    for (const [eId, exercise] of Object.entries(EXERCISES)) {
+      const res = ExerciseSchema.safeParse(exercise);
+      if (!res.success) {
+        errors.push(`Exercise schema error in "${eId}": ${res.error.message}`);
+      }
+      if (exercise.type === 'mcq' && exercise.options && exercise.correctOptionId) {
+        const optionIds = new Set(exercise.options.map(o => o.id));
+        if (!optionIds.has(exercise.correctOptionId)) {
+          errors.push(`Exercise "${eId}" correctOptionId "${exercise.correctOptionId}" does not match any declared option.`);
         }
       }
     }
@@ -198,6 +223,13 @@ export function validateCurriculum(options: { checkLinksOnly?: boolean } = {}): 
   }
 
   // Lessons -> Concept & Related Concept Blocks
+  const exerciseIdSet = new Set(Object.keys(EXERCISES));
+  for (const [eId, ex] of Object.entries(EXERCISES)) {
+    if (!conceptIdSet.has(ex.conceptId)) {
+      errors.push(`Exercise "${eId}" references non-existent Concept "${ex.conceptId}"`);
+    }
+  }
+
   for (const l of LESSONS) {
     if (!conceptIdSet.has(l.conceptId)) {
       errors.push(`Lesson "${l.id}" references non-existent Canonical Concept "${l.conceptId}"`);
@@ -209,6 +241,10 @@ export function validateCurriculum(options: { checkLinksOnly?: boolean } = {}): 
           if (!conceptIdSet.has(relId)) {
             errors.push(`Lesson "${l.id}" related_concepts block references non-existent Concept "${relId}"`);
           }
+        }
+      } else if (block.type === 'quiz') {
+        if (!exerciseIdSet.has(block.exerciseId)) {
+          warnings.push(`Lesson "${l.id}" quiz references unpopulated exercise ID "${block.exerciseId}"`);
         }
       }
     }

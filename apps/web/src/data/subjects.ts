@@ -46,7 +46,7 @@ export const SUBJECTS: Subject[] = [
     icon: 'Network',
     order: 4,
     totalLessons: 18,
-    moduleIds: ['dsa-mod-linear', 'dsa-mod-search-sort'],
+    moduleIds: ['dsa-mod-foundations', 'dsa-mod-linear', 'dsa-mod-search-sort'],
   },
   {
     id: 'memory-pointers',

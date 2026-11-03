@@ -396,7 +396,7 @@ export const CONCEPTS: Concept[] = [
     slug: 'relational-joins',
     description: 'Combining disparate relations using Cartesian cross products, theta joins, equi-joins, and outer joins.',
     difficulty: 'intermediate',
-    prerequisiteConceptIds: ['dbms.relational-model'],
+    prerequisiteConceptIds: ['dbms.sql-querying'],
     relatedConceptIds: ['dbms.indexing'],
     learningObjectives: [
       'Distinguish between INNER, LEFT OUTER, RIGHT OUTER, and FULL OUTER joins.',
@@ -477,7 +477,7 @@ export const CONCEPTS: Concept[] = [
     slug: 'c-types-variables',
     description: 'Fixed-width primitives, sign extension, two-complement negative numbers, and sizeof byte queries in C.',
     difficulty: 'beginner',
-    prerequisiteConceptIds: [],
+    prerequisiteConceptIds: ['c.compilation-pipeline'],
     relatedConceptIds: ['memory.pointers-intro'],
     learningObjectives: [
       'Explain memory byte layout of char, int, float, and double.',
@@ -559,7 +559,7 @@ export const CONCEPTS: Concept[] = [
     slug: 'python-references-identity',
     description: 'Variable names as namespace labels bound to PyObjects, mutable vs. immutable types, and is vs. == semantics.',
     difficulty: 'beginner',
-    prerequisiteConceptIds: [],
+    prerequisiteConceptIds: ['python.fundamentals'],
     relatedConceptIds: ['memory.pointers-intro'],
     learningObjectives: [
       'Explain that variables in Python are pointers to heap objects.',
@@ -570,5 +570,496 @@ export const CONCEPTS: Concept[] = [
     implementations: [],
     lessonIds: ['python-references-identity'],
     exerciseIds: [],
+  },
+
+  // --- Expanded Foundations: C Programming ---
+  {
+    id: 'c.compilation-pipeline',
+    subjectId: 'c-lang',
+    title: 'The C Compilation Pipeline (Preprocessor, Compiler, Assembler, Linker)',
+    slug: 'c-compilation-pipeline',
+    description: 'The four translation phases from human-readable C source code to an executable ELF binary, translation units, and object file symbols.',
+    difficulty: 'beginner',
+    prerequisiteConceptIds: [],
+    relatedConceptIds: ['c.types-variables'],
+    learningObjectives: [
+      'Trace macro expansion and header inclusion in the preprocessor phase.',
+      'Explain compilation to intermediate assembly code.',
+      'Differentiate between assembler output (.o) and final linker symbol resolution.',
+    ],
+    tags: ['c', 'compilation', 'gcc', 'linker', 'systems'],
+    implementations: [
+      {
+        languageId: 'c',
+        title: 'C Translation Pipeline',
+        summary: 'Source (.c) -> Preprocessor (cpp) -> Compiler (cc1) -> Assembler (as) -> Linker (ld) -> Binary.',
+        codeSnippet: `// Step 1: Preprocessor expands headers\n#include <stdio.h>\n#define BUFFER_SIZE 1024\n\nint main(void) {\n    printf("Buffer: %d\\n", BUFFER_SIZE);\n    return 0;\n}`,
+        memorySemantics: 'Executable binary contains text segment (machine code), data segment (globals), and symbol table for dynamic linking.',
+        keyDifferences: [
+          'Direct machine code compilation without bytecode or virtual machine interpretation.',
+          'Missing symbol declarations cause compile-time errors; missing definitions cause linker errors.',
+        ],
+      },
+      {
+        languageId: 'python',
+        title: 'Python Bytecode & Interpretation',
+        summary: 'Source (.py) compiles on the fly into .pyc bytecode and executes in the CPython virtual machine.',
+        codeSnippet: `import dis\ndef add(a, b):\n    return a + b\n# Disassemble bytecode\ndis.dis(add)`,
+        memorySemantics: 'Bytecode is executed by an evaluation loop (ceval.c) operating on an internal evaluation stack.',
+        keyDifferences: [
+          'No standalone linking phase; symbol resolution occurs dynamically at runtime in namespaces.',
+          'Compilation happens implicitly on module import.',
+        ],
+      },
+    ],
+    lessonIds: ['c-compilation-pipeline'],
+    exerciseIds: ['quiz-c-pipeline'],
+  },
+  {
+    id: 'c.control-flow',
+    subjectId: 'c-lang',
+    title: 'Control Flow, Branch Prediction, and Iteration Invariants',
+    slug: 'c-control-flow',
+    description: 'Conditional evaluation, truthiness in C, switch jump tables, and loop invariants for deterministic termination.',
+    difficulty: 'beginner',
+    prerequisiteConceptIds: ['c.types-variables'],
+    relatedConceptIds: ['c.functions-stack'],
+    learningObjectives: [
+      'Evaluate numeric truthiness (0 is false, non-zero is true) in pure C.',
+      'Construct deterministic loops with provable loop invariants and termination.',
+      'Contrast if-else cascades with switch-case jump tables.',
+    ],
+    tags: ['c', 'conditionals', 'loops', 'branching'],
+    implementations: [
+      {
+        languageId: 'c',
+        title: 'C Control Flow',
+        summary: 'Branching via cmp/jmp instructions, switch statement jump tables, and while/for loops.',
+        codeSnippet: `int count = 5;\nfor (int i = 0; i < count; i++) {\n    if (i % 2 == 0) {\n        // Even index branch\n    }\n}`,
+        memorySemantics: 'Branch instructions alter CPU instruction pointer (EIP/RIP); modern CPUs use branch prediction units.',
+        keyDifferences: [
+          'No native boolean type before C99 stdbool.h; integer 0 represents false, any non-zero integer is true.',
+          'Switch statements require explicit break to prevent fallthrough.',
+        ],
+      },
+    ],
+    lessonIds: ['c-control-flow'],
+    exerciseIds: ['quiz-c-control-flow'],
+  },
+  {
+    id: 'c.functions-stack',
+    subjectId: 'c-lang',
+    title: 'Functions, Activation Records, and Call-Stack Architecture',
+    slug: 'c-functions-stack',
+    description: 'Function call mechanics, cdecl calling convention, stack frame layouts, return address preservation, and parameter passing.',
+    difficulty: 'beginner',
+    prerequisiteConceptIds: ['c.control-flow'],
+    relatedConceptIds: ['memory.stack-vs-heap', 'memory.pointers-intro'],
+    learningObjectives: [
+      'Trace how arguments and local variables are pushed to the execution call stack.',
+      'Differentiate between passing by value and passing memory addresses.',
+      'Identify stack overflow conditions caused by unbounded recursion.',
+    ],
+    tags: ['c', 'functions', 'stack', 'callstack'],
+    implementations: [
+      {
+        languageId: 'c',
+        title: 'C Call-By-Value & Pointers',
+        summary: 'C passes all arguments strictly by value (copying bits). Pointers simulate pass-by-reference.',
+        codeSnippet: `void swap(int *x, int *y) {
+    int temp = *x;
+    *x = *y;
+    *y = temp;
+}
+
+int main(void) {
+    int a = 10, b = 20;
+    swap(&a, &b);
+    return 0;
+}`,
+        memorySemantics: 'Function call pushes return address, saves base pointer (RBP), allocates stack space, and tears down on ret.',
+        keyDifferences: [
+          'Pass-by-reference syntax does not exist in C (unlike C++); must explicitly pass pointer addresses.',
+          'Returning pointers to local stack variables causes undefined behavior.',
+        ],
+      },
+    ],
+    lessonIds: ['c-functions-stack'],
+    exerciseIds: ['quiz-c-functions'],
+  },
+  {
+    id: 'c.arrays-strings',
+    subjectId: 'c-lang',
+    title: 'Fixed Arrays and Null-Terminated Strings in C',
+    slug: 'c-arrays-strings',
+    description: 'Contiguous element buffers in memory, array dimension calculation, string length determination, and the null terminator character.',
+    difficulty: 'beginner',
+    prerequisiteConceptIds: ['c.functions-stack'],
+    relatedConceptIds: ['c.pointer-arithmetic', 'memory.pointers-intro'],
+    learningObjectives: [
+      'Calculate array byte sizing using sizeof(arr) / sizeof(arr[0]).',
+      'Explain how string literals in C are stored in read-only data segments.',
+      'Avoid buffer overflows when manipulating null-terminated char arrays.',
+    ],
+    tags: ['c', 'arrays', 'strings', 'buffers'],
+    implementations: [
+      {
+        languageId: 'c',
+        title: 'C Contiguous Arrays & \\0 Strings',
+        summary: 'Array name decays into a pointer to its first element; strings are byte buffers ending in \\0.',
+        codeSnippet: `char greeting[] = "Hello"; // size is 6 bytes: 'H','e','l','l','o','\\0'\nint numbers[5] = {10, 20, 30, 40, 50};`,
+        memorySemantics: 'Elements allocated sequentially in stack or data memory; no runtime bounds metadata stored.',
+        keyDifferences: [
+          'No bounds checking: reading numbers[10] reads arbitrary adjacent memory bytes.',
+          'Array cannot be resized once declared on stack.',
+        ],
+      },
+    ],
+    lessonIds: ['c-arrays-strings'],
+    exerciseIds: ['quiz-c-arrays'],
+  },
+
+  // --- Expanded Foundations: C++ & OOP ---
+  {
+    id: 'cpp.fundamentals-references',
+    subjectId: 'cpp-lang',
+    title: 'C++ Foundations: Namespaces, Streams, and Alias References',
+    slug: 'cpp-fundamentals-references',
+    description: 'Namespaces for identifier scoping, type-safe stream I/O (cin/cout), and non-null reference aliases.',
+    difficulty: 'beginner',
+    prerequisiteConceptIds: ['c.functions-stack'],
+    relatedConceptIds: ['oops.classes-objects', 'memory.pointers-intro'],
+    learningObjectives: [
+      'Prevent identifier collision using explicit namespaces.',
+      'Implement pass-by-reference using C++ alias syntax (&).',
+      'Differentiate between reference binding and pointer assignment.',
+    ],
+    tags: ['cpp', 'references', 'namespaces', 'streams'],
+    implementations: [
+      {
+        languageId: 'cpp',
+        title: 'C++ Alias References',
+        summary: 'References provide an alias to an existing object, guaranteed non-null and bound at initialization.',
+        codeSnippet: `void increment(int &val) {
+    val++; // directly modifies caller variable
+}
+
+int main() {
+    int x = 42;
+    increment(x);
+    return 0;
+}`,
+        memorySemantics: 'Compiled to identical pointer indirection in assembly, but syntax prevents null or uninitialized state.',
+        keyDifferences: [
+          'Cannot be reseated to point to another object after initialization.',
+          'No pointer arithmetic or arrow operator required.',
+        ],
+      },
+    ],
+    lessonIds: ['cpp-fundamentals-references'],
+    exerciseIds: ['quiz-cpp-references'],
+  },
+  {
+    id: 'cpp.overloading-operators',
+    subjectId: 'cpp-lang',
+    title: 'Function Overloading, Operator Overloading, and Friend Scopes',
+    slug: 'cpp-overloading-operators',
+    description: 'Compile-time ad-hoc polymorphism, name mangling, custom operator semantics, and friend access grants.',
+    difficulty: 'intermediate',
+    prerequisiteConceptIds: ['oops.classes-objects'],
+    relatedConceptIds: ['oops.polymorphism'],
+    learningObjectives: [
+      'Explain compiler name mangling for overloaded functions.',
+      'Overload mathematical and stream insertion (<<) operators safely.',
+      'Use friend functions when binary operators require asymmetric left-hand operands.',
+    ],
+    tags: ['cpp', 'overloading', 'operators', 'friend'],
+    implementations: [
+      {
+        languageId: 'cpp',
+        title: 'C++ Operator Overloading',
+        summary: 'Overload operator+ and operator<< to enable natural syntax for custom class types.',
+        codeSnippet: `class Complex {\npublic:\n    double r, i;\n    Complex operator+(const Complex &o) const {\n        return {r + o.r, i + o.i};\n    }\n};`,
+        memorySemantics: 'Resolved at compile-time by the compiler through name mangling; zero runtime dispatch overhead.',
+        keyDifferences: [
+          'Precedence and arity of operators cannot be changed.',
+          'New operator tokens cannot be invented.',
+        ],
+      },
+    ],
+    lessonIds: ['cpp-overloading-friends'],
+    exerciseIds: ['quiz-cpp-overloading'],
+  },
+
+  // --- Expanded Foundations: Python ---
+  {
+    id: 'python.fundamentals',
+    subjectId: 'python-lang',
+    title: 'Python Syntax, Dynamic Typing, and Control Flow',
+    slug: 'python-fundamentals',
+    description: 'Python interpreted execution, dynamic typing tags, indentation-based scoping, and expressive iteration.',
+    difficulty: 'beginner',
+    prerequisiteConceptIds: [],
+    relatedConceptIds: ['python.references-identity', 'python.functions-scopes'],
+    learningObjectives: [
+      'Explain how Python variables store type-tagged heap pointers.',
+      'Write clean, idiomatic control flow using while, for-in, and match-case.',
+      'Utilize list comprehensions for concise, expressive data transformations.',
+    ],
+    tags: ['python', 'basics', 'syntax', 'typing'],
+    implementations: [
+      {
+        languageId: 'python',
+        title: 'Python Dynamic Typing',
+        summary: 'Types are bound to runtime object payloads, not variable names.',
+        codeSnippet: `val = 42       # val points to an int PyObject\nval = "hello"  # val now points to a str PyObject`,
+        memorySemantics: 'Every object is a PyObject on the heap containing an ob_refcnt and ob_type pointer.',
+        keyDifferences: [
+          'No static type declaration required.',
+          'Strong typing prevents implicit conversion of string to number in arithmetic.',
+        ],
+      },
+    ],
+    lessonIds: ['python-fundamentals-syntax'],
+    exerciseIds: ['quiz-py-fundamentals'],
+  },
+  {
+    id: 'python.functions-scopes',
+    subjectId: 'python-lang',
+    title: 'Python Functions, Closures, and LEGB Scope Resolution',
+    slug: 'python-functions-scopes',
+    description: 'First-class callables, *args/**kwargs unpacking, closures, and the Local-Enclosing-Global-Builtin namespace lookup hierarchy.',
+    difficulty: 'beginner',
+    prerequisiteConceptIds: ['python.fundamentals'],
+    relatedConceptIds: ['python.oop-classes'],
+    learningObjectives: [
+      'Trace identifier resolution through the LEGB scoping hierarchy.',
+      'Implement closures that capture enclosing lexical state.',
+      'Use the nonlocal and global keywords appropriately.',
+    ],
+    tags: ['python', 'functions', 'closures', 'scopes'],
+    implementations: [
+      {
+        languageId: 'python',
+        title: 'Python Closures & Scopes',
+        summary: 'Functions are first-class objects with __closure__ attribute holding cell references.',
+        codeSnippet: `def make_multiplier(factor):\n    def multiply(x):\n        return x * factor\n    return multiply\ndouble = make_multiplier(2)\nprint(double(10)) # 20`,
+        memorySemantics: 'Captured variables are stored in PyCellObject structures preserved in the function closure.',
+        keyDifferences: [
+          'Functions can be passed as arguments, stored in collections, and returned from other functions.',
+        ],
+      },
+    ],
+    lessonIds: ['python-functions-scopes'],
+    exerciseIds: ['quiz-py-functions'],
+  },
+  {
+    id: 'python.collections',
+    subjectId: 'python-lang',
+    title: 'Python Collections Architecture (Lists, Dicts, Sets, Tuples)',
+    slug: 'python-collections',
+    description: 'Internal mechanics of Python built-ins: dynamic contiguous arrays (lists), open-addressing compact hash tables (dicts), and hash sets.',
+    difficulty: 'intermediate',
+    prerequisiteConceptIds: ['python.fundamentals'],
+    relatedConceptIds: ['python.references-identity'],
+    learningObjectives: [
+      'Analyze O(1) amortized append in Python dynamic lists.',
+      'Explain hash table collision resolution and key hashing requirements (__hash__, __eq__).',
+      'Select the optimal collection type for specific lookup and mutation workloads.',
+    ],
+    tags: ['python', 'collections', 'hashtable', 'lists'],
+    implementations: [
+      {
+        languageId: 'python',
+        title: 'Python Hash Tables',
+        summary: 'Python dicts use an index array and dense entry table to ensure O(1) average lookup and memory compactness.',
+        codeSnippet: `grades = {"Alice": 95, "Bob": 88}\n# O(1) average lookup\nscore = grades.get("Alice", 0)`,
+        memorySemantics: 'Keys must be hashable (immutable); table dynamically resizes when load factor exceeds 2/3.',
+        keyDifferences: [
+          'Dict preserves insertion order as a language guarantee since Python 3.7.',
+        ],
+      },
+    ],
+    lessonIds: ['python-collections'],
+    exerciseIds: ['quiz-py-collections'],
+  },
+  {
+    id: 'python.oop-classes',
+    subjectId: 'python-lang',
+    title: 'Python Object-Oriented Design & C3 Linearization (MRO)',
+    slug: 'python-oop-classes',
+    description: 'Classes as object factories, __init__, explicit self parameter, single and multiple inheritance, super(), and the Method Resolution Order.',
+    difficulty: 'intermediate',
+    prerequisiteConceptIds: ['python.functions-scopes', 'oops.classes-objects'],
+    relatedConceptIds: ['oops.inheritance'],
+    learningObjectives: [
+      'Implement classes with custom dunder constructors and methods.',
+      'Calculate the Method Resolution Order (MRO) for multiple inheritance hierarchies using C3 linearization.',
+      'Use super() cooperatively in diamond inheritance hierarchies.',
+    ],
+    tags: ['python', 'oop', 'classes', 'mro'],
+    implementations: [
+      {
+        languageId: 'python',
+        title: 'Python MRO & super()',
+        summary: 'Method lookup searches class __mro__ tuple computed via C3 linearization algorithm.',
+        codeSnippet: `class Base:\n    def speak(self):\n        return "Base"\nclass Derived(Base):\n    def speak(self):\n        return super().speak() + " -> Derived"`,
+        memorySemantics: 'Class attributes stored in class __dict__; instance attributes in instance __dict__ (or __slots__).',
+        keyDifferences: [
+          'Explicit self parameter required in instance methods.',
+          'Dynamic monkey patching allowed at runtime.',
+        ],
+      },
+    ],
+    lessonIds: ['python-classes-oop'],
+    exerciseIds: ['quiz-py-oop'],
+  },
+  {
+    id: 'python.exceptions-context-managers',
+    subjectId: 'python-lang',
+    title: 'Python Exception Handling and Context Managers (with Statement)',
+    slug: 'python-exceptions-context-managers',
+    description: 'Structured error handling via try/except/finally, custom exception hierarchies, and deterministic resource release via __enter__ and __exit__.',
+    difficulty: 'intermediate',
+    prerequisiteConceptIds: ['python.oop-classes'],
+    relatedConceptIds: ['oops.raii'],
+    learningObjectives: [
+      'Construct robust error recovery blocks with specific exception catching.',
+      'Implement custom context managers using __enter__ and __exit__ protocol.',
+      'Contrast Python context managers with C++ RAII resource disposal.',
+    ],
+    tags: ['python', 'exceptions', 'context-managers', 'resources'],
+    implementations: [
+      {
+        languageId: 'python',
+        title: 'Python Context Protocol',
+        summary: 'The with statement guarantees execution of __exit__ even if exceptions occur.',
+        codeSnippet: `class ManagedResource:\n    def __enter__(self):\n        return self\n    def __exit__(self, exc_type, exc_val, exc_tb):\n        # Release resources\n        return False`,
+        memorySemantics: 'Traceback object captures frame stack when exception is raised.',
+        keyDifferences: [
+          'Deterministic cleanup requires explicit with block, whereas C++ cleans up automatically on scope exit via destructors.',
+        ],
+      },
+    ],
+    lessonIds: ['python-exceptions-context-managers'],
+    exerciseIds: ['quiz-py-exceptions'],
+  },
+
+  // --- Expanded Foundations: DSA ---
+  {
+    id: 'dsa.asymptotic-complexity',
+    subjectId: 'dsa',
+    title: 'Asymptotic Analysis & Big O Notation Foundations',
+    slug: 'asymptotic-complexity',
+    description: 'Mathematical definitions of Big O, Omega, and Theta, asymptotic growth rates, input scaling, and space-time complexity trade-offs.',
+    difficulty: 'beginner',
+    prerequisiteConceptIds: [],
+    relatedConceptIds: ['dsa.arrays-amortized', 'dsa.binary-search'],
+    learningObjectives: [
+      'State the formal mathematical definition of Big O: T(n) <= c * f(n) for n >= n0.',
+      'Differentiate worst-case, average-case, and best-case performance.',
+      'Rank common asymptotic classes: O(1) < O(log n) < O(n) < O(n log n) < O(n^2) < O(2^n).',
+    ],
+    tags: ['dsa', 'complexity', 'big-o', 'algorithms', 'math'],
+    implementations: [],
+    lessonIds: ['dsa-asymptotic-complexity'],
+    exerciseIds: ['quiz-dsa-complexity'],
+  },
+  {
+    id: 'dsa.arrays-amortized',
+    subjectId: 'dsa',
+    title: 'Contiguous Memory Arrays & Dynamic Resizing Amortization',
+    slug: 'arrays-amortized',
+    description: 'Hardware cache-line locality of contiguous arrays, O(1) random-access indexing, dynamic array geometric expansion, and amortized push complexity.',
+    difficulty: 'beginner',
+    prerequisiteConceptIds: ['dsa.asymptotic-complexity'],
+    relatedConceptIds: ['dsa.singly-linked-list', 'c.arrays-strings'],
+    learningObjectives: [
+      'Calculate address offset: addr(A[i]) = base + i * sizeof(element).',
+      'Prove that geometric capacity doubling yields O(1) amortized insertion cost.',
+      'Contrast cache hit rates between contiguous arrays and pointer-based linked lists.',
+    ],
+    tags: ['dsa', 'arrays', 'amortized', 'memory'],
+    implementations: [],
+    lessonIds: ['dsa-arrays-amortized'],
+    exerciseIds: ['quiz-dsa-arrays'],
+  },
+  {
+    id: 'dsa.binary-search-tree',
+    subjectId: 'dsa',
+    title: 'Binary Search Trees (BST): Properties & Traversals',
+    slug: 'binary-search-trees',
+    description: 'Rooted binary tree structure maintaining the BST ordering invariant, recursive lookup, node insertion, and in-order sorted output.',
+    difficulty: 'intermediate',
+    prerequisiteConceptIds: ['dsa.binary-trees', 'dsa.binary-search'],
+    relatedConceptIds: ['dbms.indexing'],
+    learningObjectives: [
+      'Enforce the BST invariant: left subtrees <= root < right subtrees.',
+      'Implement recursive O(h) search and insertion where h is tree height.',
+      'Explain tree degeneration to O(n) linked list under sorted insertion sequences.',
+    ],
+    tags: ['dsa', 'trees', 'bst', 'algorithms'],
+    implementations: [],
+    lessonIds: ['dsa-binary-search-trees'],
+    exerciseIds: ['quiz-dsa-bst'],
+  },
+  {
+    id: 'dsa.graphs-bfs-dfs',
+    subjectId: 'dsa',
+    title: 'Graph Representations & Traversal Algorithms (BFS & DFS)',
+    slug: 'graphs-bfs-dfs',
+    description: 'Vertices and edges, adjacency matrix vs adjacency list, Breadth-First Search (Queue), and Depth-First Search (Stack / Recursion).',
+    difficulty: 'intermediate',
+    prerequisiteConceptIds: ['dsa.stacks-queues', 'dsa.binary-trees'],
+    relatedConceptIds: ['dsa.singly-linked-list'],
+    learningObjectives: [
+      'Compare space complexity between adjacency matrix O(V^2) and adjacency list O(V + E).',
+      'Trace BFS to compute single-source shortest path on unweighted graphs.',
+      'Implement recursive DFS with cycle detection using visited sets.',
+    ],
+    tags: ['dsa', 'graphs', 'bfs', 'dfs', 'traversal'],
+    implementations: [],
+    lessonIds: ['dsa-graphs-bfs-dfs'],
+    exerciseIds: ['quiz-dsa-graphs'],
+  },
+
+  // --- Expanded Foundations: DBMS ---
+  {
+    id: 'dbms.sql-foundations',
+    subjectId: 'dbms',
+    title: 'SQL Foundations: DDL Table Creation and DML Data Mutations',
+    slug: 'dbms-sql-foundations',
+    description: 'Data Definition Language (CREATE, ALTER, DROP), constraints (NOT NULL, UNIQUE, CHECK), and Data Manipulation Language (INSERT, UPDATE, DELETE).',
+    difficulty: 'beginner',
+    prerequisiteConceptIds: ['dbms.relational-model'],
+    relatedConceptIds: ['dbms.sql-querying', 'dbms.transactions'],
+    learningObjectives: [
+      'Write DDL statements specifying column data types and key constraints.',
+      'Perform atomic DML mutations using INSERT, UPDATE, and DELETE.',
+      'Differentiate between table schema alterations and row-level operations.',
+    ],
+    tags: ['dbms', 'sql', 'ddl', 'dml'],
+    implementations: [],
+    lessonIds: ['dbms-sql-foundations'],
+    exerciseIds: ['quiz-dbms-sql-basics'],
+  },
+  {
+    id: 'dbms.sql-querying',
+    subjectId: 'dbms',
+    title: 'SQL Declarative Querying: Filtering, Aggregation, and Grouping',
+    slug: 'dbms-sql-querying',
+    description: 'Declarative query formulation using SELECT, WHERE predicates, ORDER BY sorting, and GROUP BY aggregation with HAVING filters.',
+    difficulty: 'beginner',
+    prerequisiteConceptIds: ['dbms.sql-foundations'],
+    relatedConceptIds: ['dbms.joins', 'dbms.indexing'],
+    learningObjectives: [
+      'Construct filtered SELECT queries using comparison and logical operators.',
+      'Aggregate dataset partitions using COUNT, SUM, AVG with GROUP BY.',
+      'Differentiate between WHERE (row filter before grouping) and HAVING (group filter after aggregation).',
+    ],
+    tags: ['dbms', 'sql', 'querying', 'aggregation'],
+    implementations: [],
+    lessonIds: ['dbms-sql-querying'],
+    exerciseIds: ['quiz-dbms-sql-querying'],
   },
 ];

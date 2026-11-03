@@ -11,6 +11,7 @@
     "typecheck": "pnpm --filter @lumenode/shared-types run typecheck && pnpm --filter @lumenode/web run typecheck",
     "content:validate": "tsx scripts/content-validate.ts",
     "content:check-links": "tsx scripts/content-validate.ts --check-links",
+    "content:check-code": "tsx scripts/content-check-code.ts",
     "content:test": "pnpm test",
     "content:build": "pnpm build"
   },

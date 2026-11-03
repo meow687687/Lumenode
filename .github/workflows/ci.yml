@@ -1,0 +1,60 @@
+name: Lumenode CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-test:
+    name: Typecheck, Lint, Tests, Content & Code Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.3.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install system toolchains (gcc, g++, python3, sqlite3)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential gcc g++ python3 sqlite3
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck Workspace Packages
+        run: pnpm typecheck
+
+      - name: ESLint Code Quality
+        run: pnpm lint
+
+      - name: Automated Unit & Graph Tests
+        run: pnpm test
+
+      - name: Curriculum Schema & DAG Cycle Validation
+        run: pnpm content:validate
+
+      - name: Curriculum Referential Integrity & Link Check
+        run: pnpm content:check-links
+
+      - name: Curriculum Code Example Compilation & Execution Check
+        run: pnpm content:check-code
+
+      - name: Production Web Application Build
+        run: pnpm build

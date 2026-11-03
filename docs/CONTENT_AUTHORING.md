@@ -1,4 +1,8 @@
 # Lumenode Content Authoring Guide
+**Version:** 2.0 (Phase 2C Standard)  
+**Audience:** Curriculum Authors, Computer Science Educators, Open Source Contributors  
+
+---
 
 ## 1. Contributor Workflow
 
@@ -10,126 +14,76 @@ Follow this workflow when proposing new curriculum material:
 1. Identify Canonical Concept ──► 2. Add Multi-Language Implementations
               │
               ▼
-3. Author Structured Lesson  ──► 4. Run Automated Validation Suite
+3. Select Domain Template     ──► 4. Author 15-Part Structured Lesson
+              │
+              ▼
+5. Add Practical Exercises    ──► 6. Run Automated Pipeline (Validate & Check-Code)
                                               │
                                               ▼
-                                 5. Review & Submit Pull Request
+                                 7. Review & Submit Pull Request
 ```
 
 ---
 
-## 2. Authoring a Canonical Concept
+## 2. The 15-Part Instructional Lesson Standard
 
-1. Open `apps/web/src/data/concepts.ts`.
-2. Add a new `Concept` entry conforming to `ConceptSchema`:
+Every comprehensive instructional lesson should contain:
 
-```typescript
-{
-  id: 'dsa.binary-search-tree',
-  subjectId: 'dsa',
-  title: 'Binary Search Trees (BST)',
-  slug: 'binary-search-trees',
-  description: 'A rooted binary tree data structure with the BST invariant: left subtrees contain keys <= node key, and right subtrees contain keys >= node key.',
-  difficulty: 'intermediate',
-  prerequisiteConceptIds: ['dsa.binary-trees'],
-  relatedConceptIds: ['dsa.binary-search'],
-  learningObjectives: [
-    'Define the binary search tree ordering invariant.',
-    'Implement average-case O(log n) search, insertion, and deletion.',
-    'Analyze worst-case degeneration to O(n) un-balanced linked list.',
-  ],
-  tags: ['trees', 'bst', 'algorithms', 'dsa'],
-  implementations: [
-    {
-      languageId: 'cpp',
-      title: 'C++ BST Node & Pointer Struct',
-      summary: 'Node with unique_ptr child links and recursive traversal.',
-      codeSnippet: `struct TreeNode {\n    int val;\n    std::unique_ptr<TreeNode> left;\n    std::unique_ptr<TreeNode> right;\n};`,
-      memorySemantics: 'Nodes allocated on the heap via std::make_unique; automatically cleaned up on tree destruction.',
-      keyDifferences: [
-        'Automatic recursive deallocation prevents memory leaks.',
-        'Null pointers represent absent children.',
-      ],
-    },
-    {
-      languageId: 'python',
-      title: 'Python BST Node Class',
-      summary: 'Dynamic object references for left and right attributes.',
-      codeSnippet: `class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right`,
-      memorySemantics: 'Node references are PyObjects on heap; garbage collected when unreachable.',
-      keyDifferences: [
-        'Dynamic typing allows heterogeneous values if desired.',
-        'Recursive traversal may hit sys.getrecursionlimit() on degenerated trees.',
-      ],
-    },
-  ],
-}
-```
+1. **Title & Overview:** Clean, engaging, and pedagogically descriptive title and summary.
+2. **Measurable Learning Objectives:** Concrete goals using Bloom's action verbs.
+3. **Prerequisite Context:** Clear linkage to preceding concepts in the DAG.
+4. **Intuitive Mental Model:** Conceptual analogy or high-level visual intuition.
+5. **Formal Technical Definition:** Standard-compliant computer science specification.
+6. **Syntax or Conceptual Representation:** Grammar, memory layout diagram, or relational schema.
+7. **Complete Code Example:** Valid, syntactically clean code snippet with language tag.
+8. **Step-by-Step Code Walkthrough (`walkthrough`):** Line-by-line stepper with highlighted lines.
+9. **Interactive Visualization (`visualization`):** DSA visualizer, Memory Simulator, or SQL playground.
+10. **Common Pitfalls & Mistakes (`callout`):** Warning on memory leaks, UB, or off-by-one errors.
+11. **Practical Application:** Production systems and real-world engineering relevance.
+12. **Hands-On Exercises (`quiz` / `exercise`):** Knowledge checks with progressive difficulty.
+13. **Key Takeaway Summary:** Condensed recap reinforcing fundamental invariants.
+14. **Connected Knowledge Graph (`related_concepts`):** Direct links to related canonical concepts.
+15. **Authoritative References (`references`):** Academic citations, standard papers, and textbook links.
 
 ---
 
-## 3. Authoring a Structured Lesson
+## 3. Reusable Domain Templates
 
-1. Open `apps/web/src/data/lessons.ts`.
-2. Add a new `Lesson` object:
+Authors can set `templateType` in `Lesson` to one of 7 supported archetypes:
 
-```typescript
-{
-  id: 'dsa-lesson-05',
-  conceptId: 'dsa.binary-search-tree',
-  languageId: 'cpp',
-  title: 'Binary Search Trees: Structure & Search',
-  slug: 'bst-structure-search',
-  summary: 'Master binary search tree properties, heap node layouts, and O(log n) lookup mechanics.',
-  difficulty: 'intermediate',
-  estimatedMinutes: 20,
-  order: 5,
-  version: '1.0.0',
-  learningObjectives: [
-    'Enforce the BST invariant across child nodes.',
-    'Trace recursive lookup in assembly and C++.',
-  ],
-  sections: [
-    { type: 'heading', level: 2, text: 'The BST Ordering Property' },
-    { type: 'markdown', content: 'In a Binary Search Tree, every node satisfies...' },
-    {
-      type: 'math',
-      formula: 'T(n) = T(n/2) + O(1) \\implies O(\\log n)',
-      explanation: 'Balanced BST search recurrence relation.',
-    },
-    {
-      type: 'walkthrough',
-      title: 'Recursive Search Step-by-Step',
-      steps: [
-        {
-          stepNumber: 1,
-          title: 'Base Case: Check for Null or Target',
-          description: 'If current node is null or val equals target, return.',
-          codeSnippet: 'if (!root || root->val == target) return root;',
-          highlightLines: [1],
-        },
-      ],
-    },
-    {
-      type: 'references',
-      title: 'Academic References',
-      items: [
-        {
-          title: 'Introduction to Algorithms (CLRS)',
-          author: 'Cormen, Leiserson, Rivest, Stein',
-          year: 2022,
-        },
-      ],
-    },
-  ],
-}
-```
+### 1. `fundamentals` (Syntax, Compilation, Types, Control Flow)
+Focus on language mechanics, compilation phases, variables, operators, and control flow.
+- *Key Blocks:* Heading &rarr; Markdown &rarr; Code &rarr; Walkthrough &rarr; Callout &rarr; Quiz &rarr; Related Concepts &rarr; References.
+
+### 2. `data-structures` (Containers & Topologies)
+Focus on node layouts, pointer links, dynamic sizing, memory fragmentation, and operations.
+- *Key Blocks:* Heading &rarr; Markdown &rarr; Comparison Table &rarr; Visualization &rarr; Code &rarr; Walkthrough &rarr; Quiz &rarr; References.
+
+### 3. `algorithms` (Procedures & Complexity Analysis)
+Focus on invariants, recurrence relations, asymptotic proofs, and execution traces.
+- *Key Blocks:* Heading &rarr; Math (Complexity) &rarr; Code &rarr; Walkthrough &rarr; Quiz &rarr; References.
+
+### 4. `oop` (Encapsulation, Polymorphism, Resource Ownership)
+Focus on class abstractions, access control, vtables, RAII, and object lifetime.
+- *Key Blocks:* Heading &rarr; Markdown &rarr; Comparison &rarr; Code &rarr; Callout (Object Slicing/UB) &rarr; Quiz &rarr; References.
+
+### 5. `dbms` (Relational Models, SQL, Transactions, Indexing)
+Focus on relational algebra, declarative SQL queries, query execution plans, and ACID properties.
+- *Key Blocks:* Heading &rarr; Schema/Table Comparison &rarr; SQL Code &rarr; Visualization (SQL Lab) &rarr; Callout (Engine Differences) &rarr; References.
+
+### 6. `memory-systems` (Virtual Memory, Allocators, Stacks & Heaps)
+Focus on byte offsets, pointer arithmetic, memory alignment, page faults, and cache lines.
+- *Key Blocks:* Heading &rarr; Markdown &rarr; Visualization (Memory Simulator) &rarr; Code &rarr; Callout (UB Warning) &rarr; References.
+
+### 7. `mathematical` (Discrete Math, Proofs & Recurrences)
+Focus on formal recurrence relations, asymptotic bounds, and invariant proofs.
+- *Key Blocks:* Heading &rarr; Math Formulas &rarr; Proof Markdown &rarr; Comparison &rarr; References.
 
 ---
 
 ## 4. Content Authoring CLI Commands
 
-Lumenode provides four automated validation commands:
+Lumenode provides five automated validation commands:
 
 ### `pnpm content:validate`
 Validates every concept, module, topic, and lesson against Zod schemas, verifies uniqueness of IDs, detects cycles in the prerequisite graph, and checks content block integrity.
@@ -143,6 +97,17 @@ Runs link checking to ensure all `prerequisiteConceptIds`, `relatedConceptIds`, 
 
 ```bash
 pnpm content:check-links
+```
+
+### `pnpm content:check-code`
+Extracts code examples from lessons and tests them:
+- **C:** Runs `gcc -fsyntax-only` or compilation.
+- **C++:** Runs `g++ -std=c++17 -fsyntax-only` or compilation.
+- **Python:** Runs `/usr/bin/python3` in a controlled environment.
+- **SQL:** Validates statements against SQLite WASM engine.
+
+```bash
+pnpm content:check-code
 ```
 
 ### `pnpm content:test`
@@ -168,8 +133,9 @@ Before submitting a content PR, verify that:
 - [ ] All IDs are lowercase, hyphen-separated, and scoped (e.g. `dsa.singly-linked-list`).
 - [ ] No cyclic dependencies exist (`pnpm content:validate` exits with code 0).
 - [ ] Every lesson specifies at least 2 measurable `learningObjectives`.
-- [ ] Code examples are syntactically valid and have `executable: true` if runnable in the lab.
+- [ ] Code examples are syntactically valid and pass `pnpm content:check-code`.
 - [ ] Comparison tables have identical column counts in every row.
 - [ ] Walkthrough steps have sequential `stepNumber`s (1, 2, 3...).
 - [ ] No fake or simulated output is present.
+- [ ] Associated exercises exist in `quizzes.ts` with explanatory rationales.
 - [ ] Production build succeeds (`pnpm build`).
