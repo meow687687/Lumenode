@@ -6,6 +6,7 @@ import { DashboardView } from './components/dashboard/DashboardView';
 import { ExploreView } from './components/explore/ExploreView';
 import { LessonRoutePage } from './components/lesson/LessonRoutePage';
 import { LabRoutePage } from './components/laboratories/LabRoutePage';
+import { ConceptView } from './components/concept/ConceptView';
 import { PracticeView } from './components/practice/PracticeView';
 import { GlossaryView } from './components/glossary/GlossaryView';
 import { AlertCircle } from 'lucide-react';
@@ -40,6 +41,7 @@ export const App: React.FC = () => {
             <Route path="explore" element={<ExploreView />} />
             <Route path="languages" element={<ExploreView />} />
             <Route path="subjects" element={<ExploreView />} />
+            <Route path="concepts/:id" element={<ConceptView />} />
             <Route path="lessons/:id" element={<LessonRoutePage />} />
             <Route path="labs/:id" element={<LabRoutePage />} />
             <Route path="practice" element={<PracticeView />} />

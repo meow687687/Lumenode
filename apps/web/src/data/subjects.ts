@@ -10,7 +10,8 @@ export const SUBJECTS: Subject[] = [
     category: 'programming-languages',
     icon: 'Terminal',
     order: 1,
-    totalLessons: 12
+    totalLessons: 12,
+    moduleIds: ['c-mod-fundamentals', 'c-mod-memory'],
   },
   {
     id: 'cpp-lang',
@@ -20,7 +21,8 @@ export const SUBJECTS: Subject[] = [
     category: 'programming-languages',
     icon: 'Cpu',
     order: 2,
-    totalLessons: 14
+    totalLessons: 14,
+    moduleIds: ['cpp-mod-oop'],
   },
   {
     id: 'python-lang',
@@ -30,7 +32,8 @@ export const SUBJECTS: Subject[] = [
     category: 'programming-languages',
     icon: 'Code2',
     order: 3,
-    totalLessons: 10
+    totalLessons: 10,
+    moduleIds: ['py-mod-core'],
   },
 
   // Core Computer Science
@@ -42,7 +45,8 @@ export const SUBJECTS: Subject[] = [
     category: 'core-cs',
     icon: 'Network',
     order: 4,
-    totalLessons: 18
+    totalLessons: 18,
+    moduleIds: ['dsa-mod-linear', 'dsa-mod-search-sort'],
   },
   {
     id: 'memory-pointers',
@@ -52,7 +56,8 @@ export const SUBJECTS: Subject[] = [
     category: 'core-cs',
     icon: 'Layers',
     order: 5,
-    totalLessons: 8
+    totalLessons: 8,
+    moduleIds: ['mem-mod-architecture'],
   },
   {
     id: 'oops',
@@ -62,7 +67,8 @@ export const SUBJECTS: Subject[] = [
     category: 'core-cs',
     icon: 'Boxes',
     order: 6,
-    totalLessons: 9
+    totalLessons: 9,
+    moduleIds: ['oops-mod-concepts'],
   },
   {
     id: 'dbms',
@@ -72,6 +78,7 @@ export const SUBJECTS: Subject[] = [
     category: 'core-cs',
     icon: 'Database',
     order: 7,
-    totalLessons: 11
+    totalLessons: 11,
+    moduleIds: ['dbms-mod-relational'],
   }
 ];

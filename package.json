@@ -8,7 +8,11 @@
     "build": "pnpm --filter @lumenode/web build",
     "lint": "pnpm --filter @lumenode/web run lint",
     "test": "pnpm --filter @lumenode/web run test",
-    "typecheck": "pnpm --filter @lumenode/shared-types run typecheck && pnpm --filter @lumenode/web run typecheck"
+    "typecheck": "pnpm --filter @lumenode/shared-types run typecheck && pnpm --filter @lumenode/web run typecheck",
+    "content:validate": "tsx scripts/content-validate.ts",
+    "content:check-links": "tsx scripts/content-validate.ts --check-links",
+    "content:test": "pnpm test",
+    "content:build": "pnpm build"
   },
   "keywords": [
     "education",
@@ -19,5 +23,8 @@
   ],
   "author": "Lumenode Contributors",
   "license": "Apache-2.0",
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "tsx": "^4.23.15"
+  }
 }

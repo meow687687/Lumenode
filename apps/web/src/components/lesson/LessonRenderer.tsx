@@ -1,14 +1,29 @@
 import React from 'react';
-import { CheckCircle2, Bookmark, Clock, ArrowLeft, ArrowRight, AlertOctagon } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  CheckCircle2,
+  Bookmark,
+  Clock,
+  ArrowLeft,
+  ArrowRight,
+  AlertOctagon,
+  Target,
+  Code2,
+} from 'lucide-react';
 import { Lesson, ContentBlock } from '../../types';
 import { CodeBlock } from './CodeBlock';
 import { Callout } from './Callout';
 import { ComparisonTable } from './ComparisonTable';
 import { QuizBlock } from './QuizBlock';
+import { WalkthroughBlock } from './WalkthroughBlock';
+import { MathBlock } from './MathBlock';
+import { RelatedConceptsBlock } from './RelatedConceptsBlock';
+import { ReferencesBlock } from './ReferencesBlock';
 import { DSAVisualizer } from '../visualizers/DSAVisualizer';
 import { MemorySimulator } from '../visualizers/MemorySimulator';
 import { SQLPlayground } from '../laboratories/SQLPlayground';
 import { useProgress } from '../../context/ProgressContext';
+import { CONCEPTS } from '../../data/concepts';
 
 interface LessonRendererProps {
   lesson: Lesson;
@@ -126,6 +141,42 @@ export const LessonRenderer: React.FC<LessonRendererProps> = ({
           />
         );
 
+      case 'walkthrough':
+        return <WalkthroughBlock key={idx} block={section} />;
+
+      case 'math':
+        return <MathBlock key={idx} block={section} />;
+
+      case 'related_concepts':
+        return <RelatedConceptsBlock key={idx} block={section} />;
+
+      case 'references':
+        return <ReferencesBlock key={idx} block={section} />;
+
+      case 'exercise':
+        return (
+          <div key={idx} className="my-6 p-5 rounded-2xl border border-indigo-500/20 bg-indigo-950/20 flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-semibold">
+                Hands-on Exercise
+              </span>
+              <h5 className="text-sm font-bold text-slate-100">
+                {section.title || `Interactive Challenge: ${section.exerciseId}`}
+              </h5>
+              <p className="text-xs text-slate-400">
+                Apply what you have learned by completing the associated coding challenge.
+              </p>
+            </div>
+            <Link
+              to="/labs/code"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shrink-0 transition"
+            >
+              <Code2 className="w-3.5 h-3.5" />
+              <span>Launch Lab</span>
+            </Link>
+          </div>
+        );
+
       case 'quiz':
         return <QuizBlock key={idx} exerciseId={section.exerciseId} />;
 
@@ -195,7 +246,52 @@ export const LessonRenderer: React.FC<LessonRendererProps> = ({
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-100 mb-3">
           {lesson.title}
         </h1>
-        <p className="text-base text-slate-400 leading-relaxed">{lesson.summary}</p>
+        <p className="text-base text-slate-400 leading-relaxed mb-4">{lesson.summary}</p>
+
+        {/* Canonical Concept Link */}
+        {(() => {
+          const concept = CONCEPTS.find(c => c.id === lesson.conceptId);
+          return (
+            <div className="mt-4 p-3.5 rounded-xl border border-blue-500/30 bg-blue-950/20 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center space-x-2 text-xs">
+                <span className="text-slate-400">Canonical Concept:</span>
+                <span className="font-semibold text-slate-200">
+                  {concept ? concept.title : lesson.conceptId}
+                </span>
+                {concept && concept.implementations && concept.implementations.length > 0 && (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-cyan-300 border border-blue-500/20">
+                    {concept.implementations.length} Languages
+                  </span>
+                )}
+              </div>
+              <Link
+                to={`/concepts/${lesson.conceptId}`}
+                className="inline-flex items-center space-x-1 text-xs font-semibold text-blue-400 hover:text-blue-300 transition"
+              >
+                <span>Compare Language Implementations</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          );
+        })()}
+
+        {/* Learning Objectives */}
+        {lesson.learningObjectives && lesson.learningObjectives.length > 0 && (
+          <div className="mt-4 p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 space-y-2">
+            <div className="flex items-center space-x-2 text-xs font-semibold text-slate-300">
+              <Target className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Learning Objectives</span>
+            </div>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+              {lesson.learningObjectives.map((obj, i) => (
+                <li key={i} className="flex items-start space-x-2 text-xs text-slate-300">
+                  <span className="text-emerald-400 font-bold leading-none mt-1">•</span>
+                  <span>{obj}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Render Structured Content Blocks */}

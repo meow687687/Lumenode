@@ -21,8 +21,31 @@ export const SubjectSchema = z.object({
   icon: z.string(),
   order: z.number().int().nonnegative(),
   totalLessons: z.number().int().nonnegative().optional(),
+  moduleIds: z.array(z.string()).default([]),
 });
 export type Subject = z.infer<typeof SubjectSchema>;
+
+export const ModuleSchema = z.object({
+  id: z.string().min(1),
+  subjectId: z.string().min(1),
+  title: z.string().min(1),
+  slug: z.string().min(1),
+  description: z.string(),
+  order: z.number().int().nonnegative(),
+  topicIds: z.array(z.string()).default([]),
+});
+export type Module = z.infer<typeof ModuleSchema>;
+
+export const TopicSchema = z.object({
+  id: z.string().min(1),
+  moduleId: z.string().min(1),
+  title: z.string().min(1),
+  slug: z.string().min(1),
+  description: z.string(),
+  order: z.number().int().nonnegative(),
+  conceptIds: z.array(z.string()).default([]),
+});
+export type Topic = z.infer<typeof TopicSchema>;
 
 export const SupportedLanguageIdSchema = z.enum([
   'c',
@@ -51,16 +74,34 @@ export const DifficultyLevelSchema = z.enum([
 ]);
 export type DifficultyLevel = z.infer<typeof DifficultyLevelSchema>;
 
+// Language Implementation Details for a Canonical Concept
+export const LanguageImplementationSchema = z.object({
+  languageId: SupportedLanguageIdSchema,
+  title: z.string(),
+  summary: z.string(),
+  codeSnippet: z.string(),
+  memorySemantics: z.string(),
+  keyDifferences: z.array(z.string()).default([]),
+  idiomaticAlternative: z.string().optional(),
+});
+export type LanguageImplementation = z.infer<typeof LanguageImplementationSchema>;
+
+// Canonical Language-Agnostic Concept Schema
 export const ConceptSchema = z.object({
   id: z.string().min(1),
   subjectId: z.string().min(1),
+  topicId: z.string().optional(),
   title: z.string().min(1),
   slug: z.string().min(1),
   description: z.string(),
   prerequisiteConceptIds: z.array(z.string()).default([]),
   relatedConceptIds: z.array(z.string()).default([]),
   difficulty: DifficultyLevelSchema,
+  learningObjectives: z.array(z.string()).min(1),
   tags: z.array(z.string()).default([]),
+  implementations: z.array(LanguageImplementationSchema).default([]),
+  lessonIds: z.array(z.string()).default([]),
+  exerciseIds: z.array(z.string()).default([]),
 });
 export type Concept = z.infer<typeof ConceptSchema>;
 
@@ -111,6 +152,60 @@ export const QuizBlockSchema = z.object({
   exerciseId: z.string().min(1),
 });
 
+export const WalkthroughStepSchema = z.object({
+  stepNumber: z.number().int().positive(),
+  title: z.string(),
+  description: z.string(),
+  codeSnippet: z.string().optional(),
+  highlightLines: z.array(z.number()).optional(),
+});
+export type WalkthroughStep = z.infer<typeof WalkthroughStepSchema>;
+
+export const WalkthroughBlockSchema = z.object({
+  type: z.literal('walkthrough'),
+  title: z.string(),
+  description: z.string().optional(),
+  steps: z.array(WalkthroughStepSchema).min(1),
+});
+export type WalkthroughBlock = z.infer<typeof WalkthroughBlockSchema>;
+
+export const MathBlockSchema = z.object({
+  type: z.literal('math'),
+  formula: z.string(),
+  explanation: z.string().optional(),
+});
+export type MathBlock = z.infer<typeof MathBlockSchema>;
+
+export const RelatedConceptsBlockSchema = z.object({
+  type: z.literal('related_concepts'),
+  title: z.string().optional(),
+  conceptIds: z.array(z.string()).min(1),
+});
+export type RelatedConceptsBlock = z.infer<typeof RelatedConceptsBlockSchema>;
+
+export const ReferenceItemSchema = z.object({
+  title: z.string(),
+  url: z.string().optional(),
+  author: z.string().optional(),
+  year: z.number().optional(),
+});
+export type ReferenceItem = z.infer<typeof ReferenceItemSchema>;
+
+export const ReferencesBlockSchema = z.object({
+  type: z.literal('references'),
+  title: z.string().optional(),
+  items: z.array(ReferenceItemSchema).min(1),
+});
+export type ReferencesBlock = z.infer<typeof ReferencesBlockSchema>;
+
+export const ExerciseBlockSchema = z.object({
+  type: z.literal('exercise'),
+  exerciseId: z.string().min(1),
+  title: z.string().optional(),
+  description: z.string().optional(),
+});
+export type ExerciseBlock = z.infer<typeof ExerciseBlockSchema>;
+
 export const ContentBlockSchema = z.discriminatedUnion('type', [
   HeadingBlockSchema,
   MarkdownBlockSchema,
@@ -119,6 +214,11 @@ export const ContentBlockSchema = z.discriminatedUnion('type', [
   CalloutBlockSchema,
   ComparisonBlockSchema,
   QuizBlockSchema,
+  WalkthroughBlockSchema,
+  MathBlockSchema,
+  RelatedConceptsBlockSchema,
+  ReferencesBlockSchema,
+  ExerciseBlockSchema,
 ]);
 export type ContentBlock = z.infer<typeof ContentBlockSchema>;
 
@@ -132,6 +232,7 @@ export const LessonSchema = z.object({
   difficulty: DifficultyLevelSchema,
   estimatedMinutes: z.number().positive(),
   order: z.number().int().nonnegative(),
+  learningObjectives: z.array(z.string()).default([]),
   sections: z.array(ContentBlockSchema),
   version: z.string().default('1.0.0'),
 });
@@ -254,4 +355,12 @@ export function safeValidateLesson(data: unknown) {
 
 export function validateSubject(data: unknown): Subject {
   return SubjectSchema.parse(data);
+}
+
+export function validateConcept(data: unknown): Concept {
+  return ConceptSchema.parse(data);
+}
+
+export function safeValidateConcept(data: unknown) {
+  return ConceptSchema.safeParse(data);
 }
