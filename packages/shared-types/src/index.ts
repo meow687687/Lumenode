@@ -555,6 +555,51 @@ export const AnalyticsEventSchema = z.object({
 });
 export type AnalyticsEvent = z.infer<typeof AnalyticsEventSchema>;
 
+// Phase 6: Learning Effectiveness & Pedagogical Cycle Schemas
+export const LearningCycleStageSchema = z.enum([
+  'pre_assessment',
+  'guided_lesson',
+  'interactive_visualization',
+  'independent_practice',
+  'post_assessment',
+  'retention_assessment',
+]);
+export type LearningCycleStage = z.infer<typeof LearningCycleStageSchema>;
+
+export const QuestionConfidenceLevelSchema = z.enum(['low', 'medium', 'high']);
+export type QuestionConfidenceLevel = z.infer<typeof QuestionConfidenceLevelSchema>;
+
+export const EvaluatedQuestionResponseSchema = z.object({
+  questionId: z.string(),
+  selectedOptionIndex: z.number(),
+  isCorrect: z.boolean(),
+  confidence: QuestionConfidenceLevelSchema,
+  timeSpentMs: z.number().nonnegative(),
+});
+export type EvaluatedQuestionResponse = z.infer<typeof EvaluatedQuestionResponseSchema>;
+
+export const ConceptAssessmentSessionSchema = z.object({
+  id: z.string(),
+  conceptId: z.string(),
+  stage: z.enum(['pre_assessment', 'post_assessment', 'retention_assessment']),
+  scorePercent: z.number().min(0).max(100),
+  completedAt: z.number(),
+  responses: z.array(EvaluatedQuestionResponseSchema),
+});
+export type ConceptAssessmentSession = z.infer<typeof ConceptAssessmentSessionSchema>;
+
+export const NormalizedGainResultSchema = z.object({
+  conceptId: z.string(),
+  preScore: z.number().min(0).max(100),
+  postScore: z.number().min(0).max(100),
+  retentionScore: z.number().min(0).max(100).optional(),
+  normalizedGain: z.number(), // g = (post - pre) / (100 - pre)
+  normalizedRetentionLoss: z.number().optional(),
+  confidenceShift: z.number(), // difference in average confidence level
+  effectCategory: z.enum(['high_gain', 'medium_gain', 'low_gain', 'negative']),
+});
+export type NormalizedGainResult = z.infer<typeof NormalizedGainResultSchema>;
+
 // Helper Validation Functions
 export function validateLesson(data: unknown): Lesson {
   return LessonSchema.parse(data);

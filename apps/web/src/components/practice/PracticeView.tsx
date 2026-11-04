@@ -1,12 +1,16 @@
-import React from 'react';
-import { Award } from 'lucide-react';
+import React, { useState } from 'react';
+import { Award, BookOpen, Layers } from 'lucide-react';
 import { EXERCISES } from '../../data/quizzes';
 import { QuizBlock } from '../lesson/QuizBlock';
 import { useProgress } from '../../context/ProgressContext';
+import { CONCEPT_EFFECTIVENESS_ASSESSMENTS } from '../../data/learningEffectiveness';
+import { LearningCycleCard } from '../effectiveness/LearningCycleCard';
 
 export const PracticeView: React.FC = () => {
   const { quizScores } = useProgress();
+  const [activeTab, setActiveTab] = useState<'effectiveness' | 'exercises'>('effectiveness');
   const exerciseList = Object.values(EXERCISES);
+  const assessmentList = Object.values(CONCEPT_EFFECTIVENESS_ASSESSMENTS);
 
   const passedCount = Object.values(quizScores).filter(q => q.passed).length;
 
@@ -19,7 +23,7 @@ export const PracticeView: React.FC = () => {
             Practice & Concept Verification
           </h1>
           <p className="text-sm text-slate-400">
-            Interactive MCQs, output predictions, and systems reasoning challenges.
+            Measure learning gains, complete 6-stage concept mastery cycles, and test systems reasoning.
           </p>
         </div>
 
@@ -32,12 +36,51 @@ export const PracticeView: React.FC = () => {
         </div>
       </div>
 
-      {/* Exercise Cards */}
-      <div className="space-y-6">
-        {exerciseList.map(ex => (
-          <QuizBlock key={ex.id} exerciseId={ex.id} />
-        ))}
+      {/* Tabs */}
+      <div className="flex border-b border-slate-800 space-x-4">
+        <button
+          type="button"
+          onClick={() => setActiveTab('effectiveness')}
+          className={`pb-3 px-1 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${
+            activeTab === 'effectiveness'
+              ? 'border-sky-500 text-sky-400 font-semibold'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          6-Stage Learning Cycles ({assessmentList.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('exercises')}
+          className={`pb-3 px-1 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${
+            activeTab === 'exercises'
+              ? 'border-sky-500 text-sky-400 font-semibold'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          All Concept Exercises ({exerciseList.length})
+        </button>
       </div>
+
+      {/* Tab Content */}
+      {activeTab === 'effectiveness' ? (
+        <div className="space-y-4">
+          <div className="p-4 bg-sky-950/20 border border-sky-800/30 rounded-xl text-xs text-sky-300">
+            <span className="font-bold">Pedagogical Framework:</span> Each concept guides you through a 6-stage cycle: Pre-assessment &rarr; Guided lesson &rarr; Interactive simulation &rarr; Practice &rarr; Post-assessment &rarr; 14-day retention check. Hake&apos;s normalized gain (<span className="font-mono">g</span>) objectively measures your conceptual understanding.
+          </div>
+          {assessmentList.map((pair) => (
+            <LearningCycleCard key={pair.conceptId} assessmentPair={pair} />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {exerciseList.map(ex => (
+            <QuizBlock key={ex.id} exerciseId={ex.id} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
