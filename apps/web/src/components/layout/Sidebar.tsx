@@ -10,7 +10,8 @@ import {
   BookOpen, 
   CheckCircle2, 
   Zap,
-  Award
+  Award,
+  HelpCircle
 } from 'lucide-react';
 import { LESSONS } from '../../data/lessons';
 import { useProgress } from '../../context/ProgressContext';
@@ -18,11 +19,13 @@ import { useProgress } from '../../context/ProgressContext';
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenTour?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
+  onOpenTour,
 }) => {
   const { completedLessons } = useProgress();
   const location = useLocation();
@@ -91,6 +94,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Award className="w-4 h-4" />
               <span>Practice & Quizzes</span>
             </Link>
+
+            <button
+              onClick={() => {
+                if (onOpenTour) onOpenTour();
+                handleLinkClick();
+              }}
+              className="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition cursor-pointer text-left"
+            >
+              <HelpCircle className="w-4 h-4 text-blue-400" />
+              <span>Platform Tour</span>
+            </button>
           </div>
 
           {/* Interactive Laboratories */}

@@ -413,6 +413,21 @@ export const MasteryStateSchema = z.enum([
 ]);
 export type MasteryState = z.infer<typeof MasteryStateSchema>;
 
+export const AchievementLevelSchema = z.enum([
+  'unattempted',
+  'introduced',
+  'practicing',
+  'mastered',
+]);
+export type AchievementLevel = z.infer<typeof AchievementLevelSchema>;
+
+export const RetentionStatusSchema = z.enum([
+  'fresh',
+  'due',
+  'overdue',
+]);
+export type RetentionStatus = z.infer<typeof RetentionStatusSchema>;
+
 export const ExerciseAttemptSchema = z.object({
   attemptId: z.string(),
   exerciseId: z.string(),
@@ -430,6 +445,11 @@ export type ExerciseAttempt = z.infer<typeof ExerciseAttemptSchema>;
 export const ConceptMasteryRecordSchema = z.object({
   conceptId: z.string(),
   state: MasteryStateSchema,
+  achievementLevel: AchievementLevelSchema.default('unattempted'),
+  retentionStatus: RetentionStatusSchema.default('fresh'),
+  reviewIntervalDays: z.number().positive().default(1),
+  nextReviewAt: z.number().optional(),
+  reviewStreak: z.number().int().nonnegative().default(0),
   lessonCompleted: z.boolean().default(false),
   attemptsCount: z.number().int().nonnegative().default(0),
   passedCount: z.number().int().nonnegative().default(0),

@@ -93,4 +93,46 @@ describe('MasteryEngine (Concept Mastery State Machine)', () => {
     record = MasteryEngine.recordExerciseAttempt(record, { exerciseId: 'q3', type: 'find_error', passed: false, score: 40 });
     expect(record.state).toBe('needs_review');
   });
+
+  it('separates achievement level from retention status and preserves mastered achievement when review is due', () => {
+    let record = MasteryEngine.createDefaultRecord('c.pointers');
+    record = MasteryEngine.recordLessonCompletion(record, 1000);
+    record = MasteryEngine.recordExerciseAttempt(record, { exerciseId: 'q1', type: 'mcq', passed: true, score: 90 }, 2000);
+    record = MasteryEngine.recordExerciseAttempt(record, { exerciseId: 'q2', type: 'mcq', passed: true, score: 90 }, 3000);
+
+    expect(record.achievementLevel).toBe('mastered');
+    expect(record.retentionStatus).toBe('fresh');
+    expect(record.reviewIntervalDays).toBe(3); // Streak 2 -> 3 days interval
+
+    // Fast-forward past review date: 4 days later
+    const futureTime = 3000 + 4 * 24 * 60 * 60 * 1000;
+    const retention = MasteryEngine.computeRetentionStatus(record, futureTime);
+    const state = MasteryEngine.computeMasteryState(record, futureTime);
+
+    // Demonstrated achievement remains intact!
+    expect(record.achievementLevel).toBe('mastered');
+    expect(retention).toBe('due');
+    expect(state).toBe('needs_review');
+  });
+
+  it('advances through expanding spaced repetition intervals upon successful review', () => {
+    let record = MasteryEngine.createDefaultRecord('c.pointers');
+    const start = 10000;
+
+    // Review 1 (pass): interval becomes 1 day
+    record = MasteryEngine.recordExerciseAttempt(record, { exerciseId: 'q1', type: 'mcq', passed: true, score: 85 }, start);
+    expect(record.reviewIntervalDays).toBe(1);
+
+    // Review 2 (pass): interval becomes 3 days
+    record = MasteryEngine.recordExerciseAttempt(record, { exerciseId: 'q2', type: 'mcq', passed: true, score: 90 }, start + 1000);
+    expect(record.reviewIntervalDays).toBe(3);
+
+    // Review 3 (pass): interval becomes 7 days
+    record = MasteryEngine.recordExerciseAttempt(record, { exerciseId: 'q3', type: 'mcq', passed: true, score: 95 }, start + 2000);
+    expect(record.reviewIntervalDays).toBe(7);
+
+    // Review 4 (pass): interval becomes 14 days
+    record = MasteryEngine.recordExerciseAttempt(record, { exerciseId: 'q4', type: 'mcq', passed: true, score: 95 }, start + 3000);
+    expect(record.reviewIntervalDays).toBe(14);
+  });
 });

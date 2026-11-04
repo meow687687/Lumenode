@@ -98,6 +98,10 @@ describe('RecommendationEngine (Deterministic DAG Remediation & Next-Step Guidan
       'dsa.linked-list': {
         conceptId: 'dsa.linked-list',
         state: 'needs_review',
+        achievementLevel: 'introduced',
+        retentionStatus: 'due',
+        reviewIntervalDays: 1,
+        reviewStreak: 0,
         lessonCompleted: true,
         attemptsCount: 2,
         passedCount: 0,
@@ -110,6 +114,10 @@ describe('RecommendationEngine (Deterministic DAG Remediation & Next-Step Guidan
       'c.pointers': {
         conceptId: 'c.pointers',
         state: 'learning',
+        achievementLevel: 'introduced',
+        retentionStatus: 'fresh',
+        reviewIntervalDays: 1,
+        reviewStreak: 0,
         lessonCompleted: true,
         attemptsCount: 0,
         passedCount: 0,
@@ -137,6 +145,10 @@ describe('RecommendationEngine (Deterministic DAG Remediation & Next-Step Guidan
       'c.types': {
         conceptId: 'c.types',
         state: 'demonstrated',
+        achievementLevel: 'mastered',
+        retentionStatus: 'fresh',
+        reviewIntervalDays: 7,
+        reviewStreak: 3,
         lessonCompleted: true,
         attemptsCount: 2,
         passedCount: 2,
@@ -159,6 +171,10 @@ describe('RecommendationEngine (Deterministic DAG Remediation & Next-Step Guidan
       'c.types': {
         conceptId: 'c.types',
         state: 'practicing',
+        achievementLevel: 'practicing',
+        retentionStatus: 'fresh',
+        reviewIntervalDays: 1,
+        reviewStreak: 1,
         lessonCompleted: true,
         attemptsCount: 1,
         passedCount: 1,

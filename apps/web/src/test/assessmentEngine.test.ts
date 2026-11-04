@@ -70,22 +70,22 @@ describe('AssessmentEngine (Archetype Evaluation & Scoring)', () => {
     expect(res.correctAnswerSummary).toBeDefined();
   });
 
-  it('penalizes score proportionally when hints are revealed', () => {
-    // 1 hint used: 100 - 15 = 85
+  it('penalizes score proportionally when hints are revealed with a balanced penalty curve', () => {
+    // 1 hint used: 100 - 10 = 90
     const res1 = AssessmentEngine.evaluate(mcqExercise, {
       exerciseId: 'ex-mcq-1',
       selectedOptionId: 'opt-1',
       hintsRevealedCount: 1,
     });
-    expect(res1.score).toBe(85);
+    expect(res1.score).toBe(90);
 
-    // 6 hints used: 100 - 90 = 10, floored at 25
+    // 6 hints used: floored at 70 (never overly punitive for using hints)
     const res6 = AssessmentEngine.evaluate(mcqExercise, {
       exerciseId: 'ex-mcq-1',
       selectedOptionId: 'opt-1',
       hintsRevealedCount: 6,
     });
-    expect(res6.score).toBe(25);
+    expect(res6.score).toBe(70);
   });
 
   it('evaluates predict_output with whitespace and case tolerance', () => {

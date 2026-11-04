@@ -82,11 +82,42 @@ pnpm dev
 
 ## 📜 Documentation
 
-- [Product Requirements Document (PRD)](file:///home/sumeet/LumeNode/docs/PRD.md)
-- [System Architecture](file:///home/sumeet/LumeNode/docs/ARCHITECTURE.md)
-- [Technical Design](file:///home/sumeet/LumeNode/docs/TECHNICAL_DESIGN.md)
-- [Data Model & Schemas](file:///home/sumeet/LumeNode/docs/DATA_MODEL.md)
-- [Execution Roadmap](file:///home/sumeet/LumeNode/docs/ROADMAP.md)
+- [Product Requirements Document (PRD)](docs/PRD.md)
+- [System Architecture](docs/ARCHITECTURE.md)
+- [Technical Design](docs/TECHNICAL_DESIGN.md)
+- [Accessibility Audit & Standards (WCAG 2.2 AA)](docs/ACCESSIBILITY.md)
+- [Performance & Bundle Architecture](docs/PERFORMANCE.md)
+- [Production Deployment Guide](docs/DEPLOYMENT.md)
+- [Public Beta Testing Plan](docs/BETA_TEST_PLAN.md)
+- [Security Policy & Sandbox Architecture](docs/SECURITY.md)
+- [Phase 4 Hardening & Implementation Report](docs/PHASE_4_IMPLEMENTATION.md)
+- [Contributing Guide](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+
+---
+
+## 🧪 Verification & Quality Checks
+
+Run the complete verification pipeline locally:
+```bash
+# Type check TypeScript workspaces
+pnpm typecheck
+
+# Run unit, integration, and E2E learner journey tests
+pnpm test
+
+# Lint code
+pnpm lint
+
+# Production build with chunk analysis
+pnpm build
+
+# Validate curriculum schema integrity
+pnpm content:validate
+
+# Verify executable code samples
+pnpm content:check-code
+```
 
 ---
 

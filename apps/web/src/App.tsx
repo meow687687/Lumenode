@@ -1,15 +1,28 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ProgressProvider } from './context/ProgressContext';
 import { AppShell } from './components/layout/AppShell';
 import { DashboardView } from './components/dashboard/DashboardView';
-import { ExploreView } from './components/explore/ExploreView';
-import { LessonRoutePage } from './components/lesson/LessonRoutePage';
-import { LabRoutePage } from './components/laboratories/LabRoutePage';
-import { ConceptView } from './components/concept/ConceptView';
-import { PracticeView } from './components/practice/PracticeView';
-import { GlossaryView } from './components/glossary/GlossaryView';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
+
+// Code-split heavy views for initial load performance
+const ExploreView = lazy(() => import('./components/explore/ExploreView').then(m => ({ default: m.ExploreView })));
+const LessonRoutePage = lazy(() => import('./components/lesson/LessonRoutePage').then(m => ({ default: m.LessonRoutePage })));
+const LabRoutePage = lazy(() => import('./components/laboratories/LabRoutePage').then(m => ({ default: m.LabRoutePage })));
+const ConceptView = lazy(() => import('./components/concept/ConceptView').then(m => ({ default: m.ConceptView })));
+const PracticeView = lazy(() => import('./components/practice/PracticeView').then(m => ({ default: m.PracticeView })));
+const GlossaryView = lazy(() => import('./components/glossary/GlossaryView').then(m => ({ default: m.GlossaryView })));
+
+export const RouteLoadingFallback: React.FC = () => (
+  <div 
+    className="flex items-center justify-center py-24 space-x-3 text-slate-400"
+    role="status"
+    aria-label="Loading content"
+  >
+    <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
+    <span className="text-xs font-mono">Loading educational module...</span>
+  </div>
+);
 
 export const NotFoundPage: React.FC = () => (
   <div className="max-w-2xl mx-auto py-20 px-4 text-center space-y-4">
@@ -38,14 +51,70 @@ export const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<AppShell />}>
             <Route index element={<DashboardView />} />
-            <Route path="explore" element={<ExploreView />} />
-            <Route path="languages" element={<ExploreView />} />
-            <Route path="subjects" element={<ExploreView />} />
-            <Route path="concepts/:id" element={<ConceptView />} />
-            <Route path="lessons/:id" element={<LessonRoutePage />} />
-            <Route path="labs/:id" element={<LabRoutePage />} />
-            <Route path="practice" element={<PracticeView />} />
-            <Route path="glossary" element={<GlossaryView />} />
+            <Route
+              path="explore"
+              element={
+                <Suspense fallback={<RouteLoadingFallback />}>
+                  <ExploreView />
+                </Suspense>
+              }
+            />
+            <Route
+              path="languages"
+              element={
+                <Suspense fallback={<RouteLoadingFallback />}>
+                  <ExploreView />
+                </Suspense>
+              }
+            />
+            <Route
+              path="subjects"
+              element={
+                <Suspense fallback={<RouteLoadingFallback />}>
+                  <ExploreView />
+                </Suspense>
+              }
+            />
+            <Route
+              path="concepts/:id"
+              element={
+                <Suspense fallback={<RouteLoadingFallback />}>
+                  <ConceptView />
+                </Suspense>
+              }
+            />
+            <Route
+              path="lessons/:id"
+              element={
+                <Suspense fallback={<RouteLoadingFallback />}>
+                  <LessonRoutePage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="labs/:id"
+              element={
+                <Suspense fallback={<RouteLoadingFallback />}>
+                  <LabRoutePage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="practice"
+              element={
+                <Suspense fallback={<RouteLoadingFallback />}>
+                  <PracticeView />
+                </Suspense>
+              }
+            />
+            <Route
+              path="glossary"
+              element={
+                <Suspense fallback={<RouteLoadingFallback />}>
+                  <GlossaryView />
+                </Suspense>
+              }
+            />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

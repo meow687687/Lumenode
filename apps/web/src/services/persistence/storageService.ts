@@ -67,7 +67,23 @@ export class StorageService {
 
       const savedMastery = localStorage.getItem(STORAGE_KEYS.MASTERY_RECORDS);
       if (savedMastery) {
-        masteryRecords = JSON.parse(savedMastery);
+        const parsed: Record<string, ConceptMasteryRecord> = JSON.parse(savedMastery);
+        for (const [k, v] of Object.entries(parsed)) {
+          if (!v.achievementLevel) {
+            v.achievementLevel = MasteryEngine.computeAchievementLevel(v);
+          }
+          if (!v.retentionStatus) {
+            v.retentionStatus = MasteryEngine.computeRetentionStatus(v);
+          }
+          if (!v.reviewIntervalDays) {
+            v.reviewIntervalDays = 1;
+          }
+          if (v.reviewStreak === undefined) {
+            v.reviewStreak = 0;
+          }
+          parsed[k] = v;
+        }
+        masteryRecords = parsed;
       }
 
       const savedActive = localStorage.getItem(STORAGE_KEYS.ACTIVE_LESSON);

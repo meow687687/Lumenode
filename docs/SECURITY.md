@@ -79,6 +79,29 @@ Their execution is routed to an isolated remote container gateway conforming to 
 
 ---
 
-## 5. Vulnerability Disclosure
+## 5. Local-First Privacy & Zero Third-Party Tracking
 
-To report a technical or security vulnerability, please email `security@lumenode.dev` or file a private security report on GitHub.
+Lumenode operates on a strict **local-first privacy architecture**:
+- **Zero Required User Accounts:** Learners can access the full curriculum, interactive visualizers, code playgrounds, and assessments without creating an account or providing personal identity data.
+- **Client-Side Progress Storage:** Learning history, quiz evaluations, spaced-repetition timestamps, and visualizer preferences are saved exclusively in browser `localStorage`.
+- **Zero Third-Party Trackers:** No Google Analytics, Meta Pixels, commercial telemetry beacons, or advertising cookies are embedded.
+- **Portability:** Learners can export a full JSON snapshot of their progress at any time and import it into another browser or device without data loss.
+
+---
+
+## 6. Vulnerability Disclosure & Bug Reporting
+
+We take platform security, sandbox isolation, and student safety seriously.
+
+### 6.1 Reporting Channels
+If you discover a security vulnerability in Lumenode (such as a WebAssembly worker sandbox escape, remote compiler gateway bypass, or stored XSS vulnerability):
+- **Email:** `security@lumenode.org`
+- **GitHub Security Advisory:** File a confidential report via GitHub Security Advisories at `https://github.com/lumenode/lumenode/security/advisories/new`.
+
+Please do not open public GitHub issues for undisclosed security vulnerabilities.
+
+### 6.2 Response SLA
+- **Initial Response & Acknowledgment:** Within 48 hours of report submission.
+- **Triage & Severity Assessment:** Within 5 business days.
+- **Remediation & Patch Release:** P0/P1 sandbox breaches prioritized for hotfix within 7 days.
+

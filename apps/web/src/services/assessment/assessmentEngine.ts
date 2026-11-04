@@ -132,10 +132,11 @@ export class AssessmentEngine {
 
     // Score calculation with hint penalties:
     // Baseline: 100 points for correct, 0 for incorrect.
-    // Penalty: -15 points per hint used (floored at 25 points).
+    // Balanced penalty: -10 points per hint used, capped at max -30 points (floored at 70 points).
+    // Ensures learners who leverage educational hints are not overly penalized.
     let score = 0;
     if (isCorrect) {
-      score = Math.max(25, 100 - hintsUsed * 15);
+      score = Math.max(70, 100 - hintsUsed * 10);
     }
 
     return {

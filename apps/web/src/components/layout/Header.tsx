@@ -1,13 +1,15 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, Search, GitBranch, Menu } from 'lucide-react';
+import { Sparkles, Search, GitBranch, Menu, HelpCircle } from 'lucide-react';
 import { useProgress } from '../../context/ProgressContext';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
+  onOpenSearch?: () => void;
+  onOpenTour?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
+export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onOpenSearch, onOpenTour }) => {
   const { completedLessons } = useProgress();
   const location = useLocation();
 
@@ -23,6 +25,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
       <div className="flex items-center space-x-4">
         <button
           onClick={onToggleSidebar}
+          aria-label="Toggle navigation menu"
           className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg lg:hidden cursor-pointer"
         >
           <Menu className="w-5 h-5" />
@@ -47,7 +50,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
       </div>
 
       {/* Middle: Quick navigation */}
-      <nav className="hidden md:flex items-center space-x-1">
+      <nav className="hidden md:flex items-center space-x-1" aria-label="Main Navigation">
         <Link
           to="/"
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
@@ -92,23 +95,38 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
 
       {/* Right: Actions */}
       <div className="flex items-center space-x-3">
+        {/* Search Trigger Button with Cmd+K hint */}
+        <button
+          onClick={onOpenSearch}
+          aria-label="Open search (Ctrl+K or Cmd+K)"
+          className="flex items-center space-x-2 px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg border border-slate-800 text-xs transition cursor-pointer"
+        >
+          <Search className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Search</span>
+          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-slate-800 rounded border border-slate-700 text-slate-400">
+            ⌘K
+          </kbd>
+        </button>
+
+        <button
+          onClick={onOpenTour}
+          aria-label="Platform Tour & Guide"
+          title="Platform Tour & Guide"
+          className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg transition cursor-pointer"
+        >
+          <HelpCircle className="w-4 h-4" />
+        </button>
+
         <div className="hidden sm:flex items-center space-x-2 text-xs font-mono text-slate-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
           <span className="w-2 h-2 rounded-full bg-emerald-400" />
           <span>{completedLessons.size} completed</span>
         </div>
 
-        <Link
-          to="/explore"
-          className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg transition"
-          title="Search lessons"
-        >
-          <Search className="w-4 h-4" />
-        </Link>
-
         <a
           href="https://github.com/your-username/lumenode"
           target="_blank"
           rel="noreferrer"
+          aria-label="Open-source repository on GitHub"
           className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg transition"
           title="Open-source repository"
         >
