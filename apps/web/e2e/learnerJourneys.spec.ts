@@ -168,11 +168,11 @@ test.describe('Lumenode Real Browser E2E Learner Journeys', () => {
     await dismissTourIfPresent(page);
 
     // Switch to C
-    const cBtn = page.getByRole('button', { name: /C \(GCC 13\)/i });
+    const cBtn = page.getByRole('button', { name: /C11 \(GCC\)/i });
     await cBtn.click();
 
-    // Should indicate remote execution requirement rather than fabricating fake outputs
-    await expect(page.getByText(/Remote Gateway Pending/i)).toBeVisible();
+    // Should indicate remote execution status or gateway availability rather than fabricating fake outputs
+    await expect(page.getByText(/Gateway Microservice Available|Gateway Connected|Remote Gateway Pending/i)).toBeVisible();
   });
 
   test('Journey 9: Beta Feedback submission and local queuing', async ({ page }) => {

@@ -556,6 +556,18 @@ export const AnalyticsEventSchema = z.object({
 export type AnalyticsEvent = z.infer<typeof AnalyticsEventSchema>;
 
 // Phase 6: Learning Effectiveness & Pedagogical Cycle Schemas
+export const AssessmentQuestionSchema = z.object({
+  id: z.string(),
+  prompt: z.string(),
+  codeSnippet: z.string().optional(),
+  options: z.array(z.string()),
+  correctIndex: z.number().int().nonnegative(),
+  explanation: z.string(),
+  difficulty: DifficultyLevelSchema,
+  conceptId: z.string(),
+});
+export type AssessmentQuestion = z.infer<typeof AssessmentQuestionSchema>;
+
 export const LearningCycleStageSchema = z.enum([
   'pre_assessment',
   'guided_lesson',
