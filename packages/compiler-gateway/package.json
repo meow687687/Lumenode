@@ -10,8 +10,8 @@
     "start": "tsx src/server.ts",
     "test": "vitest run"
   },
-  "dependencies": {},
   "devDependencies": {
+    "@types/node": "^26.6.6",
     "vitest": "^4.1.4"
   }
 }

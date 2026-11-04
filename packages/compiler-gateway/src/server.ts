@@ -4,9 +4,17 @@ import { executeSubmission, ExecutionOptions } from './runner.js';
 export interface ServerConfig {
   port?: number;
   host?: string;
+  maxConcurrent?: number;
+  rateLimitPerMinute?: number;
 }
 
-export function createGatewayServer(): http.Server {
+export function createGatewayServer(config: ServerConfig = {}): http.Server {
+  const maxConcurrent = config.maxConcurrent ?? 4;
+  const rateLimitPerMinute = config.rateLimitPerMinute ?? 60;
+
+  let activeExecutions = 0;
+  const ipRequestCounts = new Map<string, { count: number; resetAt: number }>();
+
   const server = http.createServer(async (req, res) => {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,16 +28,58 @@ export function createGatewayServer(): http.Server {
     }
 
     const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+    const clientIp = req.socket.remoteAddress || '127.0.0.1';
 
     // GET /health
     if (req.method === 'GET' && url.pathname === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ status: 'ok', service: 'lumenode-compiler-gateway' }));
+      res.end(
+        JSON.stringify({
+          status: 'ok',
+          service: 'lumenode-compiler-gateway',
+          activeExecutions,
+          maxConcurrent,
+          timestamp: Date.now(),
+        })
+      );
       return;
     }
 
     // POST /submissions?wait=true
     if (req.method === 'POST' && (url.pathname === '/submissions' || url.pathname === '/submissions/')) {
+      // 1. Rate Limiting Check
+      const now = Date.now();
+      const ipRecord = ipRequestCounts.get(clientIp) || { count: 0, resetAt: now + 60000 };
+      if (now > ipRecord.resetAt) {
+        ipRecord.count = 0;
+        ipRecord.resetAt = now + 60000;
+      }
+      ipRecord.count++;
+      ipRequestCounts.set(clientIp, ipRecord);
+
+      if (ipRecord.count > rateLimitPerMinute) {
+        res.writeHead(429, { 'Content-Type': 'application/json' });
+        res.end(
+          JSON.stringify({
+            error: 'Rate Limit Exceeded',
+            message: `Maximum ${rateLimitPerMinute} requests per minute exceeded.`,
+          })
+        );
+        return;
+      }
+
+      // 2. Concurrency Queue Restriction Check
+      if (activeExecutions >= maxConcurrent) {
+        res.writeHead(503, { 'Content-Type': 'application/json' });
+        res.end(
+          JSON.stringify({
+            error: 'Gateway Busy',
+            message: `Concurrent execution ceiling (${maxConcurrent}) reached. Try again shortly.`,
+          })
+        );
+        return;
+      }
+
       let body = '';
       req.on('data', (chunk) => {
         body += chunk;
@@ -42,6 +92,7 @@ export function createGatewayServer(): http.Server {
       });
 
       req.on('end', async () => {
+        activeExecutions++;
         try {
           const payload = JSON.parse(body);
           const options: ExecutionOptions = {
@@ -61,6 +112,8 @@ export function createGatewayServer(): http.Server {
           const errMsg = err instanceof Error ? err.message : String(err);
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ error: 'Invalid Submission Request', details: errMsg }));
+        } finally {
+          activeExecutions = Math.max(0, activeExecutions - 1);
         }
       });
       return;

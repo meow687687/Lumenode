@@ -99,6 +99,9 @@ importers:
 
   packages/compiler-gateway:
     devDependencies:
+      '@types/node':
+        specifier: ^26.6.6
+        version: 26.6.6
       vitest:
         specifier: ^4.1.4
         version: 4.1.12(@types/node@26.6.6)(jsdom@26.1.0)(vite@6.4.5(@types/node@26.6.6)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15))
