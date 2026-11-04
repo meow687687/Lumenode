@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lumenode — Style 02: Cyber Systems / Hacker Terminal</title>
+  <style>
+    :root, [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #050807;
+      --bg-elevated: #090e0c;
+      --surface: #0a110e;
+      --surface-2: #101c17;
+      --surface-hover: #162620;
+      --border: #1a382b;
+      --border-strong: #00ff66;
+      --text: #d8fced;
+      --text-2: #7db99d;
+      --muted: #416854;
+      --accent: #00ff66;
+      --accent-soft: rgba(0, 255, 102, 0.12);
+      --cyan: #00e5ff;
+      --amber: #ffb700;
+      --rose: #ff3366;
+      --glow: 0 0 14px rgba(0, 255, 102, 0.45);
+      --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Monaco, Consolas, monospace;
+    }
+    [data-theme="light"] {
+      color-scheme: light;
+      --bg: #f0fdf4;
+      --bg-elevated: #e0f9e9;
+      --surface: #ffffff;
+      --surface-2: #dcfce7;
+      --surface-hover: #bbf7d0;
+      --border: #86efac;
+      --border-strong: #15803d;
+      --text: #052e16;
+      --text-2: #166534;
+      --muted: #15803d;
+      --accent: #16a34a;
+      --accent-soft: rgba(22, 163, 74, 0.15);
+      --cyan: #0284c7;
+      --amber: #b45309;
+      --rose: #dc2626;
+      --glow: 0 0 8px rgba(22, 163, 74, 0.25);
+      --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* CRT Scanline & Grain Overlay */
+    body::before {
+      content: " ";
+      position: fixed; inset: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 3px, 6px 100%;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.6;
+    }
+
+    button, input { font-family: inherit; }
+    button { cursor: pointer; color: inherit; }
+    :focus-visible { outline: 1px solid var(--accent); box-shadow: var(--glow); }
+
+    /* Shell */
+    .shell { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 250px;
+      background: var(--bg-elevated);
+      border-right: 1px solid var(--border);
+      position: fixed; top: 0; bottom: 0; left: 0;
+      padding: 20px 16px;
+      display: flex; flex-direction: column;
+      z-index: 40;
+    }
+    .brand {
+      display: block;
+      padding-bottom: 20px;
+      margin-bottom: 15px;
+      border-bottom: 1px dashed var(--border);
+      text-decoration: none;
+      color: var(--accent);
+      text-shadow: var(--glow);
+    }
+    .brand-title { font-weight: 800; font-size: 15px; letter-spacing: 0.05em; }
+    .brand-status { font-size: 10px; color: var(--text-2); margin-top: 4px; display: flex; align-items: center; gap: 6px; }
+    .blinking-cursor {
+      display: inline-block; width: 6px; height: 12px;
+      background: var(--accent); animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .nav-label {
+      font-size: 10px; text-transform: uppercase; color: var(--muted);
+      letter-spacing: 0.1em; margin: 12px 0 6px;
+    }
+    .nav-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 8px; border: 1px solid transparent;
+      color: var(--text-2); text-decoration: none; font-size: 12px;
+      transition: all 0.15s ease;
+    }
+    .nav-link:hover {
+      background: var(--surface-2); color: var(--accent);
+      border-color: var(--border);
+    }
+    .nav-link.active {
+      background: var(--accent-soft); color: var(--accent);
+      border-color: var(--accent);
+      box-shadow: var(--glow);
+      font-weight: 700;
+    }
+    .sidebar-stats {
+      margin-top: auto; padding: 12px;
+      border: 1px solid var(--border); background: var(--surface);
+      font-size: 10px; color: var(--text-2);
+    }
+
+    /* Main Area */
+    .main { margin-left: 250px; flex: 1; min-height: 100vh; }
+    .topbar {
+      height: 52px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px;
+      background: var(--bg);
+      position: sticky; top: 0; z-index: 30;
+    }
+    .sys-info { font-size: 11px; color: var(--muted); }
+    .sys-info span { color: var(--accent); font-weight: 700; }
+    .actions { display: flex; align-items: center; gap: 8px; }
+    .terminal-btn {
+      padding: 4px 10px; background: var(--surface);
+      border: 1px solid var(--border); color: var(--text-2);
+      font-size: 11px; display: flex; align-items: center; gap: 6px;
+    }
+    .terminal-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Canvas */
+    .container {
+      max-width: 1200px; margin: 0 auto;
+      padding: 32px 32px 64px;
+    }
+    .header-banner {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .header-banner::before {
+      content: "[ SYS_STATUS: OPERATIONAL // KERNEL 6.1 // MEM: OK ]";
+      position: absolute; top: -8px; right: 20px;
+      background: var(--bg); padding: 0 6px; font-size: 9px;
+      color: var(--accent); border: 1px solid var(--border);
+    }
+    .header-banner h1 {
+      font-size: 20px; color: var(--accent); text-shadow: var(--glow);
+      font-weight: 700; margin-bottom: 4px;
+    }
+
+    /* Grid Layout */
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1fr);
+      gap: 20px;
+    }
+    .col { display: grid; gap: 20px; }
+
+    /* Terminal Box */
+    .box {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 18px;
+      position: relative;
+    }
+    .box-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px; padding-bottom: 6px;
+      border-bottom: 1px dashed var(--border);
+      font-size: 11px; font-weight: 700; color: var(--accent);
+      letter-spacing: 0.05em;
+    }
+    .box-header span:last-child { color: var(--muted); font-weight: normal; }
+
+    /* Hero Continue */
+    .hero-box {
+      border-color: var(--accent);
+      box-shadow: var(--glow);
+      background: linear-gradient(135deg, var(--surface) 0%, #0d1e16 100%);
+    }
+    .hero-title { font-size: 18px; color: #fff; margin-bottom: 8px; font-weight: 700; }
+    .hero-desc { color: var(--text-2); font-size: 12px; line-height: 1.6; margin-bottom: 18px; }
+    .hero-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .action-btn {
+      background: var(--accent); color: #000; font-weight: 800;
+      border: none; padding: 8px 16px; font-size: 11px;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      box-shadow: var(--glow);
+    }
+    .action-btn:hover { background: #fff; }
+
+    /* ASCII Progress Bar */
+    .ascii-progress { font-size: 11px; color: var(--text-2); }
+    .ascii-bar { color: var(--accent); font-weight: 700; }
+
+    /* 3 Compact Telemetry Metrics */
+    .telemetry-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    }
+    .tele-cell {
+      border: 1px solid var(--border); background: var(--surface);
+      padding: 12px; text-align: left;
+    }
+    .tele-label { font-size: 9px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+    .tele-val { font-size: 20px; font-weight: 800; color: var(--accent); text-shadow: var(--glow); }
+
+    /* Learning Paths Monospace List */
+    .path-entry {
+      padding: 8px; border: 1px solid transparent;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 6px; cursor: pointer;
+    }
+    .path-entry:hover {
+      border-color: var(--border); background: var(--surface-2);
+    }
+
+    /* Activity Stream */
+    .stream-line {
+      display: flex; gap: 10px; font-size: 11px; padding: 6px 0;
+      border-bottom: 1px dotted var(--border);
+    }
+    .stream-line:last-child { border-bottom: none; }
+    .stream-tag { color: var(--cyan); shrink-0; }
+    .stream-time { color: var(--muted); font-size: 10px; margin-left: auto; }
+
+    /* Rhythm Matrix */
+    .rhythm-matrix {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      gap: 6px; text-align: center; margin-top: 10px;
+    }
+    .matrix-cell {
+      border: 1px solid var(--border); padding: 8px 4px;
+      font-size: 10px; color: var(--muted);
+    }
+    .matrix-cell.active {
+      border-color: var(--accent); color: var(--accent);
+      background: var(--accent-soft); box-shadow: var(--glow);
+    }
+
+    /* Search Modal */
+    .search-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.85); z-index: 60;
+      place-items: start center; padding-top: 12vh;
+    }
+    .search-overlay.open { display: grid; }
+    .cli-prompt {
+      width: min(640px, 94vw);
+      background: #000;
+      border: 1px solid var(--accent);
+      box-shadow: var(--glow);
+      padding: 16px;
+    }
+    .cli-input-row { display: flex; align-items: center; gap: 8px; border-bottom: 1px dashed var(--border); padding-bottom: 10px; }
+    .cli-input-row input {
+      flex: 1; background: transparent; border: none; outline: none;
+      color: var(--accent); font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      body.menu-open .sidebar { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .grid { grid-template-columns: 1fr; }
+      .container { padding: 16px; }
+      .telemetry-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <!-- Terminal Sidebar -->
+  <aside class="sidebar">
+    <a href="#" class="brand">
+      <div class="brand-title">ROOT@LUMENODE:~#</div>
+      <div class="brand-status">
+        <span style="color: var(--accent);">●</span> ONLINE // DAEMON ACTIVE
+      </div>
+    </a>
+
+    <div class="nav-label">// NAVIGATION_SUBSYSTEM</div>
+    <a href="#" class="nav-link active">[01] DASHBOARD</a>
+    <a href="#" class="nav-link">[02] KNOWLEDGE_GRAPH</a>
+    <a href="#" class="nav-link">[03] SIMULATION_LABS</a>
+    <a href="#" class="nav-link">[04] PRACTICE_EVAL</a>
+
+    <div class="nav-label" style="margin-top: 16px;">// COMPILER_SANDBOXES</div>
+    <a href="#" class="nav-link">[C] GCC_13.2 / C11</a>
+    <a href="#" class="nav-link">[CPP] G++ / C++17</a>
+    <a href="#" class="nav-link">[PY] PYODIDE_WASM</a>
+    <a href="#" class="nav-link">[SQL] SQLITE3_WASM</a>
+
+    <div class="sidebar-stats">
+      <div>MEM_PERSISTENCE: LOCAL</div>
+      <div>STORAGE_VER: V2.0</div>
+      <div>TELEMETRY: ZERO_PII</div>
+    </div>
+  </aside>
+
+  <!-- Terminal Main -->
+  <div class="main">
+    <header class="topbar">
+      <div class="sys-info">
+        SYS: <span>LUMENODE_OS_1.1</span> // IP: <span>127.0.0.1</span>
+      </div>
+      <div class="actions">
+        <button class="terminal-btn" id="openSearchBtn">
+          <span>&gt; GREP_CURRICULUM</span>
+          <span style="opacity: 0.6;">[CTRL+K]</span>
+        </button>
+        <button class="terminal-btn" id="themeToggle">
+          <span>[THEME: FLIP]</span>
+        </button>
+        <button class="terminal-btn" id="menuToggle" style="display: none;">[MENU]</button>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="header-banner">
+        <h1>EXECUTION CONSOLE &amp; LEARNING STREAM</h1>
+        <p style="color: var(--text-2); font-size: 11px;">
+          "Theory without systems practice is hallucination. Code without architecture is chaos."
+        </p>
+      </div>
+
+      <div class="grid">
+        <div class="col">
+          <!-- Hero Continue Learning -->
+          <article class="box hero-box">
+            <div class="box-header">
+              <span>TARGET_THREAD: POINTER_ARITHMETIC_VIRTUAL_MEM</span>
+              <span>PRIORITY: HIGH</span>
+            </div>
+            <div class="hero-title">c_pointers_basics.elf // STACK_MAPPING</div>
+            <p class="hero-desc">
+              Direct unchecked 64-bit memory addresses. Inspect CPU activation records, frame pointers (RBP), and dereferencing assembly operations.
+            </p>
+            <div class="hero-actions">
+              <button class="action-btn" onclick="alert('LAUNCHING BINARY: /lessons/c-pointers-basics')">
+                &gt; EXECUTE_LESSON
+              </button>
+              <div class="ascii-progress">
+                TOPIC_COMPLETION: <span class="ascii-bar">[■■■■■■■■■■□□□□□□] 62%</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- 3 Telemetry Metrics -->
+          <div class="telemetry-row">
+            <div class="tele-cell">
+              <div class="tele-label">CONCEPTS_MASTERED</div>
+              <div class="tele-val">12</div>
+              <div style="font-size: 9px; color: var(--muted); margin-top: 2px;">PASSED &gt;= 2 CONSECUTIVE</div>
+            </div>
+            <div class="tele-cell">
+              <div class="tele-label">RETENTION_DUE</div>
+              <div class="tele-val" style="color: var(--amber);">02</div>
+              <div style="font-size: 9px; color: var(--muted); margin-top: 2px;">SPACED REPETITION EXP</div>
+            </div>
+            <div class="tele-cell">
+              <div class="tele-label">CURRICULUM_INDEX</div>
+              <div class="tele-val">32.4%</div>
+              <div style="font-size: 9px; color: var(--muted); margin-top: 2px;">12 / 37 MODULES VERIFIED</div>
+            </div>
+          </div>
+
+          <!-- Active Paths -->
+          <article class="box">
+            <div class="box-header">
+              <span>ACTIVE_COMPILATION_PIPELINES</span>
+              <span>INDEX: 07 PATHS</span>
+            </div>
+            <div>
+              <div class="path-entry">
+                <span>[01] C_SYSTEMS_PROGRAMMING</span>
+                <span class="ascii-bar">[■■■■■■■■■■□□□□] 62%</span>
+              </div>
+              <div class="path-entry">
+                <span>[02] DATA_STRUCTURES_AND_ALGORITHMS</span>
+                <span class="ascii-bar">[■■■■□□□□□□□□□□] 28%</span>
+              </div>
+              <div class="path-entry">
+                <span>[03] DATABASE_MANAGEMENT_SYSTEMS</span>
+                <span class="ascii-bar">[■■□□□□□□□□□□□□] 14%</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="col">
+          <!-- 7-Day Consistency Matrix -->
+          <article class="box">
+            <div class="box-header">
+              <span>WEEKLY_EXECUTION_MATRIX</span>
+              <span>4 DAYS VERIFIED</span>
+            </div>
+            <div class="rhythm-matrix">
+              <div class="matrix-cell active">MON<br/>[OK]</div>
+              <div class="matrix-cell active">TUE<br/>[OK]</div>
+              <div class="matrix-cell active">WED<br/>[NOW]</div>
+              <div class="matrix-cell">THU<br/>[--]</div>
+              <div class="matrix-cell">FRI<br/>[--]</div>
+              <div class="matrix-cell active">SAT<br/>[OK]</div>
+              <div class="matrix-cell">SUN<br/>[--]</div>
+            </div>
+          </article>
+
+          <!-- Audit Activity Stream -->
+          <article class="box">
+            <div class="box-header">
+              <span>SYSTEM_AUDIT_LOG</span>
+              <span>STDOUT</span>
+            </div>
+            <div>
+              <div class="stream-line">
+                <span class="stream-tag">[PASS]</span>
+                <span>c.pointers-basics: verified 100/100</span>
+                <span class="stream-time">10:42 AM</span>
+              </div>
+              <div class="stream-line">
+                <span class="stream-tag">[EXEC]</span>
+                <span>bst.in-order: 3 traversal steps</span>
+                <span class="stream-time">YESTERDAY</span>
+              </div>
+              <div class="stream-line">
+                <span class="stream-tag" style="color: var(--amber);">[WARN]</span>
+                <span>dbms.joins: review decay alert</span>
+                <span class="stream-time">2D AGO</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Recommendations -->
+          <article class="box">
+            <div class="box-header">
+              <span>DAG_RESOLVED_RECOMMENDATIONS</span>
+              <span>ALGO_DECISION</span>
+            </div>
+            <div style="font-size: 11px; margin-bottom: 10px;">
+              <span style="color: var(--accent);">&gt; NEXT:</span> <strong>c.dynamic-memory-alloc</strong><br/>
+              <span style="color: var(--muted);">REASON: Prerequisites satisfied. Extends stack frame to heap.</span>
+            </div>
+            <div style="font-size: 11px;">
+              <span style="color: var(--cyan);">&gt; PREREQ:</span> <strong>dsa.avl-trees</strong><br/>
+              <span style="color: var(--muted);">REASON: Tree height balancing reinforcement.</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Search Dialog -->
+<div class="search-overlay" id="searchModal">
+  <div class="cli-prompt">
+    <div class="cli-input-row">
+      <span style="color: var(--accent);">&gt; GREP:</span>
+      <input type="text" id="searchInput" placeholder="Enter symbol, concept, or opcode..." />
+      <span style="color: var(--muted); font-size: 10px;">[ESC_EXIT]</span>
+    </div>
+    <div style="margin-top: 12px; font-size: 12px; display: grid; gap: 6px;">
+      <div>[MATCH] <span style="color: var(--accent);">c.pointers</span> - Virtual memory &amp; references</div>
+      <div>[MATCH] <span style="color: var(--cyan);">dsa.bst</span> - Binary Search Tree in-order traversal</div>
+      <div>[MATCH] <span style="color: var(--amber);">dbms.sqlite</span> - SQL queries via in-browser worker</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const themeToggle = document.getElementById('themeToggle');
+  const root = document.documentElement;
+  themeToggle.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    root.setAttribute('data-theme', next);
+  });
+
+  const modal = document.getElementById('searchModal');
+  const openSearchBtn = document.getElementById('openSearchBtn');
+  const searchInput = document.getElementById('searchInput');
+
+  function openSearch() { modal.classList.add('open'); setTimeout(() => searchInput.focus(), 50); }
+  function closeSearch() { modal.classList.remove('open'); }
+
+  openSearchBtn.addEventListener('click', openSearch);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeSearch(); });
+
+  window.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      modal.classList.contains('open') ? closeSearch() : openSearch();
+    }
+    if (e.key === 'Escape') closeSearch();
+  });
+</script>
+</body>
+</html>

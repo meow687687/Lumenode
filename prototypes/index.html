@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lumenode UI Prototypes Gallery</title>
+  <style>
+    :root {
+      --bg: #090a0f;
+      --card-bg: #12141c;
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #f0f2f8;
+      --text-muted: #8b92a5;
+      --accent: #6366f1;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      padding: 32px 24px;
+      line-height: 1.5;
+    }
+    header {
+      max-width: 1280px;
+      margin: 0 auto 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
+    }
+    h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+    p.lead { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+    .viewport-controls {
+      display: flex; gap: 8px; align-items: center;
+      background: var(--card-bg); padding: 4px; border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .vp-btn {
+      background: transparent; border: none; color: var(--text-muted);
+      padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .vp-btn.active, .vp-btn:hover { background: var(--accent); color: #fff; }
+
+    .gallery-grid {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .proto-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .proto-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .badge {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      padding: 3px 8px; border-radius: 4px; margin-bottom: 12px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .badge-apple { background: rgba(41, 151, 255, 0.15); color: #2997ff; }
+    .badge-cyber { background: rgba(0, 255, 102, 0.15); color: #00ff66; }
+    .badge-linear { background: rgba(94, 106, 210, 0.18); color: #707ee6; }
+    .badge-academic { background: rgba(229, 169, 103, 0.18); color: #e5a967; }
+
+    .proto-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .proto-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px; }
+    .btn-view {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 8px 14px; background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text); text-decoration: none; font-size: 12px; font-weight: 600;
+      transition: background 0.15s;
+    }
+    .btn-view:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* Interactive Preview Frame */
+    .preview-section {
+      max-width: 1280px;
+      margin: 0 auto;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #000;
+    }
+    .preview-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border);
+    }
+    .preview-tabs { display: flex; gap: 8px; }
+    .tab-btn {
+      background: transparent; border: 1px solid transparent; color: var(--text-muted);
+      padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .tab-btn.active {
+      background: var(--bg); border-color: var(--border); color: var(--text);
+    }
+    .iframe-wrapper {
+      width: 100%; height: 750px;
+      display: grid; place-items: center; background: #050608;
+      overflow: auto;
+    }
+    iframe {
+      width: 100%; height: 100%; border: none; background: #fff;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Lumenode UI Design Exploration</h1>
+      <p class="lead">Four distinct design personalities for the Lumenode learning environment. Fully self-contained single-file prototypes.</p>
+    </div>
+    <div class="viewport-controls">
+      <span style="font-size: 11px; color: var(--text-muted); padding: 0 4px;">Viewport:</span>
+      <button class="vp-btn active" onclick="setViewport('100%')">Desktop (100%)</button>
+      <button class="vp-btn" onclick="setViewport('820px')">Tablet (820px)</button>
+      <button class="vp-btn" onclick="setViewport('390px')">Mobile (390px)</button>
+    </div>
+  </header>
+
+  <div class="gallery-grid">
+    <!-- Card 1 -->
+    <div class="proto-card">
+      <div>
+        <span class="badge badge-apple">Style 01</span>
+        <div class="proto-title">Apple &amp; Vercel Minimal</div>
+        <p class="proto-desc">Pure, quiet surfaces, ultra-clean typography, subtle glassmorphism, and restrained Apple aesthetic.</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-view" style="flex: 1;" onclick="switchTab('01-apple-minimal.html', 0)">Preview Here</button>
+        <a class="btn-view" href="01-apple-minimal.html" target="_blank" title="Open in new tab">&UpperRightArrow;</a>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="proto-card">
+      <div>
+        <span class="badge badge-cyber">Style 02</span>
+        <div class="proto-title">Cyber Systems Terminal</div>
+        <p class="proto-desc">Raw hacker monospace, phosphor green CRT scanline glow, telemetry gauges, and UNIX CLI command interface.</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-view" style="flex: 1;" onclick="switchTab('02-hacker-terminal.html', 1)">Preview Here</button>
+        <a class="btn-view" href="02-hacker-terminal.html" target="_blank" title="Open in new tab">&UpperRightArrow;</a>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="proto-card">
+      <div>
+        <span class="badge badge-linear">Style 03</span>
+        <div class="proto-title">Linear / Raycast Precision</div>
+        <p class="proto-desc">High-density dark surfaces, keyboard shortcut cap pills, neon indigo glows, and command-palette ergonomics.</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-view" style="flex: 1;" onclick="switchTab('03-linear-precision.html', 2)">Preview Here</button>
+        <a class="btn-view" href="03-linear-precision.html" target="_blank" title="Open in new tab">&UpperRightArrow;</a>
+      </div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="proto-card">
+      <div>
+        <span class="badge badge-academic">Style 04</span>
+        <div class="proto-title">Academic CS Monograph</div>
+        <p class="proto-desc">Warm editorial typography, serif monograph headings, margin notes, and Gutenberg classical rhythm.</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-view" style="flex: 1;" onclick="switchTab('04-academic-editorial.html', 3)">Preview Here</button>
+        <a class="btn-view" href="04-academic-editorial.html" target="_blank" title="Open in new tab">&UpperRightArrow;</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Frame Section -->
+  <section class="preview-section">
+    <div class="preview-bar">
+      <div class="preview-tabs">
+        <button class="tab-btn active" onclick="switchTab('01-apple-minimal.html', 0)">01 Apple Minimal</button>
+        <button class="tab-btn" onclick="switchTab('02-hacker-terminal.html', 1)">02 Cyber Terminal</button>
+        <button class="tab-btn" onclick="switchTab('03-linear-precision.html', 2)">03 Linear Precision</button>
+        <button class="tab-btn" onclick="switchTab('04-academic-editorial.html', 3)">04 Academic Monograph</button>
+      </div>
+      <span id="activeUrlLabel" style="font-size: 11px; font-family: monospace; color: var(--text-muted);">
+        prototypes/01-apple-minimal.html
+      </span>
+    </div>
+    <div class="iframe-wrapper">
+      <iframe id="previewFrame" src="01-apple-minimal.html"></iframe>
+    </div>
+  </section>
+
+  <script>
+    const frame = document.getElementById('previewFrame');
+    const tabs = document.querySelectorAll('.tab-btn');
+    const vpBtns = document.querySelectorAll('.vp-btn');
+    const urlLabel = document.getElementById('activeUrlLabel');
+
+    function switchTab(file, index) {
+      frame.src = file;
+      urlLabel.textContent = `prototypes/${file}`;
+      tabs.forEach((t, i) => t.classList.toggle('active', i === index));
+    }
+
+    function setViewport(width) {
+      frame.style.width = width;
+      vpBtns.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

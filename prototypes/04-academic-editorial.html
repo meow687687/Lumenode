@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lumenode — Style 04: Academic Monograph & Editorial CS</title>
+  <style>
+    :root, [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #141619;
+      --bg-elevated: #1a1c22;
+      --surface: #1e2229;
+      --surface-2: #252a33;
+      --surface-hover: #2e3440;
+      --border: #323946;
+      --border-strong: #d4a373;
+      --text: #eceff4;
+      --text-2: #c0c6d4;
+      --muted: #8892b0;
+      --accent: #e5a967;
+      --accent-soft: rgba(229, 169, 103, 0.12);
+      --green: #a3be8c;
+      --amber: #ebcb8b;
+      --rose: #bf616a;
+      --font-serif: "Charter", "Bitstream Charter", "Iowan Old Style", "Cambria", "Times New Roman", Georgia, serif;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: "Courier New", Courier, monospace;
+    }
+    [data-theme="light"] {
+      color-scheme: light;
+      --bg: #fcfbf9;
+      --bg-elevated: #f5f2eb;
+      --surface: #ffffff;
+      --surface-2: #f0ece1;
+      --surface-hover: #e8e2d4;
+      --border: #dfd8c8;
+      --border-strong: #8c5d2b;
+      --text: #2e3440;
+      --text-2: #4c566a;
+      --muted: #7f899e;
+      --accent: #a35d25;
+      --accent-soft: rgba(163, 93, 37, 0.08);
+      --green: #4c7852;
+      --amber: #99621e;
+      --rose: #9c363d;
+      --font-serif: "Charter", "Bitstream Charter", "Iowan Old Style", "Cambria", "Times New Roman", Georgia, serif;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: "Courier New", Courier, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-serif);
+      font-size: 15px;
+      line-height: 1.65;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input { font-family: var(--font-sans); }
+    button { cursor: pointer; color: inherit; }
+    :focus-visible { outline: 2px dashed var(--accent); outline-offset: 2px; }
+
+    /* Shell */
+    .shell { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 250px;
+      background: var(--bg-elevated);
+      border-right: 1px solid var(--border);
+      position: fixed; top: 0; bottom: 0; left: 0;
+      padding: 24px 20px;
+      display: flex; flex-direction: column;
+      z-index: 40;
+    }
+    .brand {
+      text-decoration: none; color: var(--text);
+      display: block; padding-bottom: 20px; margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+    }
+    .brand-title {
+      font-size: 20px; font-weight: 700; letter-spacing: -0.01em;
+      font-family: var(--font-serif);
+    }
+    .brand-sub {
+      font-family: var(--font-sans); font-size: 10px;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em;
+      margin-top: 2px;
+    }
+    .nav-label {
+      font-family: var(--font-sans); font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted);
+      margin: 16px 0 6px;
+    }
+    .nav-item {
+      display: block; padding: 6px 8px; border-radius: 4px;
+      color: var(--text-2); text-decoration: none; font-size: 13px;
+      font-family: var(--font-sans); transition: background 0.15s;
+    }
+    .nav-item:hover { background: var(--surface-hover); color: var(--text); }
+    .nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+    .colophon {
+      margin-top: auto; padding: 12px; border: 1px solid var(--border);
+      font-size: 11px; font-family: var(--font-sans); color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Main Area */
+    .main { margin-left: 250px; flex: 1; min-height: 100vh; }
+    .topbar {
+      height: 60px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px; background: var(--bg);
+      position: sticky; top: 0; z-index: 30;
+    }
+    .journal-edition {
+      font-family: var(--font-sans); font-size: 11px; color: var(--muted);
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .actions { display: flex; align-items: center; gap: 10px; }
+    .btn-search {
+      padding: 6px 12px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 4px;
+      font-family: var(--font-sans); font-size: 11px; color: var(--muted);
+    }
+    .btn-icon {
+      padding: 6px 10px; border-radius: 4px; background: var(--surface);
+      border: 1px solid var(--border); font-family: var(--font-sans); font-size: 11px;
+    }
+
+    /* Canvas */
+    .container {
+      max-width: 1180px; margin: 0 auto;
+      padding: 48px 48px 80px;
+    }
+    .folio-header {
+      margin-bottom: 36px; padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .folio-header h1 {
+      font-size: 36px; font-weight: normal; font-style: italic;
+      color: var(--text); margin-bottom: 6px;
+    }
+    .folio-header p {
+      font-size: 16px; color: var(--text-2); font-style: normal;
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1fr);
+      gap: 32px;
+    }
+    .col { display: grid; gap: 32px; }
+
+    /* Editorial Section */
+    .paper-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 28px;
+      position: relative;
+    }
+    .paper-card::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--accent);
+    }
+    .card-num {
+      font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+      margin-bottom: 4px; display: block;
+    }
+    .card-title {
+      font-size: 20px; font-weight: 700; color: var(--text);
+      margin-bottom: 10px; font-family: var(--font-serif);
+    }
+    .card-body {
+      color: var(--text-2); font-size: 14px; line-height: 1.65;
+      margin-bottom: 20px;
+    }
+
+    /* Button */
+    .btn-academic {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px; background: var(--accent); color: #fff;
+      border: none; border-radius: 2px; font-family: var(--font-sans);
+      font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .btn-academic:hover { opacity: 0.9; }
+
+    /* 3 Monograph Metrics */
+    .metrics-triptych {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .metric-panel {
+      border: 1px solid var(--border); background: var(--surface);
+      padding: 16px; text-align: center;
+    }
+    .m-num {
+      font-size: 32px; font-family: var(--font-serif); font-weight: 700;
+      color: var(--accent); line-height: 1; margin-bottom: 6px;
+    }
+    .m-label {
+      font-family: var(--font-sans); font-size: 11px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+
+    /* Paths */
+    .treatise-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .treatise-row:last-child { border-bottom: none; }
+    .treatise-title { font-size: 15px; font-weight: 600; color: var(--text); }
+    .treatise-sub { font-size: 12px; color: var(--muted); font-family: var(--font-sans); margin-top: 2px; }
+    .treatise-val { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+
+    /* Rhythm Week */
+    .calendar-week {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      gap: 6px; text-align: center; margin-top: 14px;
+    }
+    .cal-day {
+      border: 1px solid var(--border); padding: 8px 4px;
+      font-family: var(--font-sans); font-size: 11px; color: var(--muted);
+    }
+    .cal-day.active {
+      border-color: var(--accent); background: var(--accent-soft);
+      color: var(--accent); font-weight: 700;
+    }
+
+    /* Modal */
+    .search-modal-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.75); z-index: 60;
+      place-items: start center; padding-top: 15vh;
+    }
+    .search-modal-backdrop.open { display: grid; }
+    .index-search-card {
+      width: min(600px, 92vw); background: var(--surface);
+      border: 1px solid var(--border-strong); padding: 24px;
+    }
+    .index-search-card input {
+      width: 100%; padding: 10px; font-size: 15px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--text); outline: none; margin-bottom: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      body.menu-open .sidebar { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .grid { grid-template-columns: 1fr; }
+      .container { padding: 24px 20px; }
+      .metrics-triptych { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <!-- Monograph Sidebar -->
+  <aside class="sidebar">
+    <a href="#" class="brand">
+      <div class="brand-title">Lumenode</div>
+      <div class="brand-sub">Computer Science Monograph</div>
+    </a>
+
+    <div class="nav-label">Table of Contents</div>
+    <a href="#" class="nav-item active">I. Overview &amp; Progress</a>
+    <a href="#" class="nav-item">II. Subject Treatises</a>
+    <a href="#" class="nav-item">III. Visual Apparatus</a>
+    <a href="#" class="nav-item">IV. Problem Sets</a>
+
+    <div class="nav-label" style="margin-top: 16px;">Compendiums</div>
+    <a href="#" class="nav-item">C Systems (C11)</a>
+    <a href="#" class="nav-item">Data Structures &amp; Complexity</a>
+    <a href="#" class="nav-item">Relational Theory (DBMS)</a>
+
+    <div class="colophon">
+      <strong>Local Preservation:</strong><br/>
+      All notes, proofs, and evaluations are preserved offline in browser storage.
+    </div>
+  </aside>
+
+  <!-- Monograph Main -->
+  <div class="main">
+    <header class="topbar">
+      <div class="journal-edition">Volume I &bull; Foundations of Architecture &bull; 2026</div>
+      <div class="actions">
+        <button class="btn-search" id="openSearchBtn">Index Search (Cmd+K)</button>
+        <button class="btn-icon" id="themeToggle">Toggle Tone</button>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="folio-header">
+        <h1>Make room for a new idea.</h1>
+        <p>A structured compendium of systems programming and computational foundations.</p>
+      </div>
+
+      <div class="grid">
+        <div class="col">
+          <!-- Continue Learning Monograph Hero -->
+          <article class="paper-card">
+            <span class="card-num">TREATISE CH. IV &bull; C SYSTEMS</span>
+            <h2 class="card-title">Demystifying Pointers &amp; Memory Addressing</h2>
+            <p class="card-body">
+              An architectural investigation into virtual addressing, indirection, and CPU activation records. Understanding addresses before applying memory allocation.
+            </p>
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+              <button class="btn-academic" onclick="alert('Opening reading: c-pointers-basics')">
+                Resume Reading &rarr;
+              </button>
+              <div style="font-family: var(--font-mono); font-size: 12px; color: var(--accent);">
+                Section progress: 62%
+              </div>
+            </div>
+          </article>
+
+          <!-- 3 Monograph Metrics -->
+          <div class="metrics-triptych">
+            <div class="metric-panel">
+              <div class="m-num">12</div>
+              <div class="m-label">Concepts Mastered</div>
+            </div>
+            <div class="metric-panel">
+              <div class="m-num" style="color: var(--amber);">02</div>
+              <div class="m-label">Review Intervals Due</div>
+            </div>
+            <div class="metric-panel">
+              <div class="m-num">32%</div>
+              <div class="m-label">Curriculum Covered</div>
+            </div>
+          </div>
+
+          <!-- Learning Paths -->
+          <article class="paper-card">
+            <span class="card-num">CURRICULUM SYLLABUS</span>
+            <h3 class="card-title">Active Theoretical Treatises</h3>
+            <div>
+              <div class="treatise-row">
+                <div>
+                  <div class="treatise-title">I. Low-Level Architecture &amp; C</div>
+                  <div class="treatise-sub">Binary representation, memory pointers, manual memory &bull; 12 Chapters</div>
+                </div>
+                <div class="treatise-val">62% [7/12]</div>
+              </div>
+              <div class="treatise-row">
+                <div>
+                  <div class="treatise-title">II. Data Structures &amp; Complexity</div>
+                  <div class="treatise-sub">Asymptotic Big-O, search trees, graphs &bull; 18 Chapters</div>
+                </div>
+                <div class="treatise-val">28% [5/18]</div>
+              </div>
+              <div class="treatise-row">
+                <div>
+                  <div class="treatise-title">III. Relational Database Systems</div>
+                  <div class="treatise-sub">Relational algebra, B+ tree indexing, transactions &bull; 7 Chapters</div>
+                </div>
+                <div class="treatise-val">14% [1/7]</div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="col">
+          <!-- Rhythm -->
+          <article class="paper-card">
+            <span class="card-num">CHRONOMETRY</span>
+            <h3 class="card-title">Study Rhythm</h3>
+            <p style="font-size: 13px; color: var(--muted); margin-bottom: 8px;">
+              Four active sessions recorded during this cycle.
+            </p>
+            <div class="calendar-week">
+              <div class="cal-day active">M<br/>✓</div>
+              <div class="cal-day active">T<br/>✓</div>
+              <div class="cal-day active">W<br/>&bull;</div>
+              <div class="cal-day">T<br/>-</div>
+              <div class="cal-day">F<br/>-</div>
+              <div class="cal-day active">S<br/>✓</div>
+              <div class="cal-day">S<br/>-</div>
+            </div>
+          </article>
+
+          <!-- Recent Activity -->
+          <article class="paper-card">
+            <span class="card-num">ACADEMIC LOG</span>
+            <h3 class="card-title">Recent Milestones</h3>
+            <div style="font-size: 13px; font-family: var(--font-sans); line-height: 1.6;">
+              <div style="padding: 6px 0; border-bottom: 1px solid var(--border);">
+                <strong>Demonstrated:</strong> Pointer Arithmetic<br/>
+                <span style="font-size: 11px; color: var(--muted);">Evaluation passed: 100% score</span>
+              </div>
+              <div style="padding: 6px 0; border-bottom: 1px solid var(--border);">
+                <strong>Executed:</strong> Binary Search Tree Traversal<br/>
+                <span style="font-size: 11px; color: var(--muted);">Interactive step laboratory</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Recommendation -->
+          <article class="paper-card">
+            <span class="card-num">RECOMMENDED NEXT INQUIRY</span>
+            <h3 class="card-title">Dynamic Memory (malloc / free)</h3>
+            <p style="font-size: 13px; color: var(--text-2); margin-bottom: 12px;">
+              Prerequisite dependencies satisfied. Transitioning from activation stack frames to heap dynamic allocation.
+            </p>
+            <a href="#" style="color: var(--accent); font-family: var(--font-sans); font-size: 12px; font-weight: 700; text-decoration: none;">
+              Read Chapter Introduction &rarr;
+            </a>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="search-modal-backdrop" id="searchModal">
+  <div class="index-search-card">
+    <h3 style="font-family: var(--font-serif); margin-bottom: 12px;">Monograph Index Search</h3>
+    <input type="text" id="searchInput" placeholder="Search treatise index or concept..." />
+    <div style="font-size: 12px; font-family: var(--font-sans); color: var(--muted);">
+      Press ESC to return to folio reading.
+    </div>
+  </div>
+</div>
+
+<script>
+  const themeToggle = document.getElementById('themeToggle');
+  const root = document.documentElement;
+  themeToggle.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    root.setAttribute('data-theme', next);
+  });
+
+  const modal = document.getElementById('searchModal');
+  const openSearchBtn = document.getElementById('openSearchBtn');
+  const searchInput = document.getElementById('searchInput');
+
+  function openSearch() { modal.classList.add('open'); setTimeout(() => searchInput.focus(), 50); }
+  function closeSearch() { modal.classList.remove('open'); }
+
+  openSearchBtn.addEventListener('click', openSearch);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeSearch(); });
+
+  window.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      modal.classList.contains('open') ? closeSearch() : openSearch();
+    }
+    if (e.key === 'Escape') closeSearch();
+  });
+</script>
+</body>
+</html>
