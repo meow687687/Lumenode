@@ -112,7 +112,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
             `[STATUS: COMPILER GATEWAY NOT CONFIGURED]\n\n` +
             `${res.message}\n\n` +
             `To enable remote execution:\n` +
-            `1. Start local runner: docker run -p 2358:2358 judge0/judge0:latest\n` +
+            `1. Start local compiler gateway: pnpm compiler-gateway:start (or docker run -p 2358:2358 judge0/judge0:latest)\n` +
             `2. Configure: VITE_COMPILER_GATEWAY_URL=http://localhost:2358\n\n` +
             `To test genuine execution right now in-browser, switch to the "Python (Pyodide)" tab!`
           );
@@ -246,16 +246,20 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 font-semibold flex items-center">
                   <Sparkles className="w-3 h-3 mr-1" /> Browser WASM Ready
                 </span>
+              ) : compilerGateway.isConfigured() ? (
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 font-semibold flex items-center">
+                  <Sparkles className="w-3 h-3 mr-1" /> Gateway Connected ({lang === 'c' ? 'C11 / GCC' : 'C++17 / G++'})
+                </span>
               ) : (
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-950 text-amber-400 border border-amber-800 font-semibold">
-                  Remote Gateway Pending
+                  Gateway Microservice Available ({lang === 'c' ? 'C11' : 'C++17'})
                 </span>
               )}
             </div>
             <p className="text-xs text-slate-400">
               {lang === 'python'
                 ? 'Genuine Python 3.12 WebAssembly runtime executed in a dedicated background worker'
-                : 'Native compiled language sandbox scheduled for isolated remote gateway integration'}
+                : 'Native compiled execution adhering to ADR 0004 with strict hardware sandboxing'}
             </p>
           </div>
         </div>
@@ -272,7 +276,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                   : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
               }`}
             >
-              {l === 'python' ? 'Python (Pyodide WASM)' : l === 'c' ? 'C (GCC 13)' : 'C++ (Clang 17)'}
+              {l === 'python' ? 'Python (Pyodide WASM)' : l === 'c' ? 'C11 (GCC)' : 'C++17 (G++)'}
             </button>
           ))}
         </div>

@@ -172,7 +172,10 @@ export const BPlusTreeLab: React.FC = () => {
       )}
 
       {/* Multi-Tier Tree Diagram */}
-      <div className="flex flex-col gap-6 overflow-auto rounded-lg border border-slate-800 bg-slate-900/60 p-6 min-h-[300px]">
+      <div className="flex flex-col gap-6 overflow-x-auto overflow-y-hidden rounded-lg border border-slate-800 bg-slate-900/60 p-6 min-h-[300px] scrollbar-thin scrollbar-thumb-slate-700">
+        <div className="sm:hidden text-[10px] text-slate-500 mb-1 flex items-center justify-between">
+          <span>&larr; Swipe to pan wide B+ tree leaves &rarr;</span>
+        </div>
         {levels.map((levelNodes, depth) => {
           const isLeafLevel = depth === levels.length - 1;
 

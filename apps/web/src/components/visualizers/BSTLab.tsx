@@ -263,7 +263,10 @@ export const BSTLab: React.FC = () => {
       </div>
 
       {/* Interactive SVG Diagram */}
-      <div className="relative min-h-[360px] overflow-auto rounded-lg border border-slate-800 bg-slate-900/60 p-4">
+      <div className="relative min-h-[360px] overflow-x-auto overflow-y-hidden rounded-lg border border-slate-800 bg-slate-900/60 p-4 scrollbar-thin scrollbar-thumb-slate-700">
+        <div className="sm:hidden text-[10px] text-slate-500 mb-2 flex items-center justify-between">
+          <span>&larr; Swipe to pan wide trees &rarr;</span>
+        </div>
         {treeState.root === null ? (
           <div className="flex h-64 flex-col items-center justify-center text-center text-slate-500">
             <ArrowDown className="h-8 w-8 animate-bounce mb-2 text-slate-600" />
