@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Lumenode — Dashboard concept</title>
+  <style>
+
+    :root {
+      color-scheme: dark;
+      --bg: #0d1016;
+      --bg-elevated: #111620;
+      --surface: #151b27;
+      --surface-2: #1a2230;
+      --surface-3: #202b3b;
+      --surface-hover: #202a39;
+      --text: #f2f5fb;
+      --text-2: #b5c0d0;
+      --muted: #8290a4;
+      --subtle: #5f6c7e;
+      --border: rgba(175, 193, 219, .13);
+      --border-strong: rgba(175, 193, 219, .22);
+      --accent: #8aa7ff;
+      --accent-strong: #6488f5;
+      --accent-soft: rgba(116, 148, 255, .14);
+      --cyan: #6bd4d2;
+      --green: #70d3a5;
+      --amber: #f2bd70;
+      --rose: #f18d9d;
+      --shadow: 0 18px 54px rgba(0,0,0,.24);
+      --sidebar: 252px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+    }
+    html[data-theme="light"] {
+      color-scheme: light;
+      --bg: #f5f6f8;
+      --bg-elevated: #fbfcfe;
+      --surface: #ffffff;
+      --surface-2: #f5f7fb;
+      --surface-3: #eaf0fa;
+      --surface-hover: #f0f4fb;
+      --text: #182131;
+      --text-2: #526077;
+      --muted: #748198;
+      --subtle: #929db0;
+      --border: rgba(37, 55, 84, .10);
+      --border-strong: rgba(37, 55, 84, .17);
+      --accent: #4267d5;
+      --accent-strong: #3157c4;
+      --accent-soft: rgba(66, 103, 213, .10);
+      --cyan: #147f88;
+      --green: #18845a;
+      --amber: #a86b1c;
+      --rose: #c34b63;
+      --shadow: 0 16px 42px rgba(35,51,78,.08);
+      --focus: 0 0 0 2px #fff, 0 0 0 4px var(--accent);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; letter-spacing: -.01em; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    a { color: inherit; text-decoration: none; }
+    button:focus-visible, a:focus-visible, input:focus-visible { outline: none; box-shadow: var(--focus); }
+    .app { min-height: 100vh; }
+    .sidebar {
+      width: var(--sidebar); position: fixed; inset: 0 auto 0 0; z-index: 30;
+      display: flex; flex-direction: column; padding: 25px 17px 18px;
+      background: var(--bg-elevated); border-right: 1px solid var(--border);
+    }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 10px; margin-bottom: 33px; }
+    .brand-mark { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; color: #fff; background: linear-gradient(145deg,#8aa7ff,#597ce4); box-shadow: 0 6px 18px rgba(89,124,228,.28); }
+    .brand-name { font: 800 18px/1 Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: -.055em; }
+    .brand-version { font: 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--muted); margin-left: 5px; letter-spacing: 0; }
+    .nav-label { padding: 0 11px; margin: 0 0 9px; color: var(--subtle); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .13em; }
+    .nav-group { margin-bottom: 27px; }
+    .nav-list { display: grid; gap: 4px; }
+    .nav-link { height: 41px; display: flex; align-items: center; gap: 12px; padding: 0 11px; border-radius: 11px; color: var(--text-2); font-size: 13px; font-weight: 500; transition: background .18s ease,color .18s ease; }
+    .nav-link svg { width: 17px; height: 17px; color: var(--muted); flex: 0 0 auto; }
+    .nav-link:hover { background: var(--surface-hover); color: var(--text); }
+    .nav-link.active { color: var(--text); background: var(--accent-soft); font-weight: 650; }
+    .nav-link.active svg { color: var(--accent); }
+    .nav-count { margin-left: auto; color: var(--muted); font: 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .sidebar-bottom { margin-top: auto; }
+    .sidebar-note { background: var(--surface); border: 1px solid var(--border); border-radius: 15px; padding: 13px 13px 12px; margin: 0 3px 16px; }
+    .note-top { display: flex; gap: 8px; align-items: center; color: var(--text-2); font-size: 11px; font-weight: 650; }
+    .note-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; box-shadow: 0 0 0 4px color-mix(in srgb,var(--green) 13%,transparent); }
+    .sidebar-note p { margin: 8px 0 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .profile { display: flex; align-items: center; gap: 10px; padding: 12px 9px 0; border-top: 1px solid var(--border); }
+    .avatar { width: 33px; height: 33px; display: grid; place-items: center; border-radius: 50%; color: #27365c; background: linear-gradient(145deg,#d9e1ff,#9cb2fa); font-weight: 750; font-size: 11px; }
+    .profile-name { font-size: 12px; font-weight: 650; }
+    .profile-meta { font-size: 10px; color: var(--muted); }
+    .profile-more { margin-left: auto; color: var(--muted); }
+    .main-shell { margin-left: var(--sidebar); min-height: 100vh; }
+    .topbar { height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 42px; border-bottom: 1px solid var(--border); background: color-mix(in srgb,var(--bg) 88%,transparent); position: sticky; top: 0; z-index: 20; backdrop-filter: blur(18px); }
+    .crumbs { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; }
+    .crumb-current { color: var(--text-2); font-weight: 600; }
+    .top-actions { display: flex; align-items: center; gap: 9px; }
+    .search-trigger { width: 218px; display: flex; align-items: center; gap: 9px; padding: 8px 10px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; text-align: left; cursor: pointer; }
+    .search-trigger span { font-size: 11px; }
+    .keycap { margin-left: auto; border: 1px solid var(--border-strong); background: var(--surface-2); color: var(--muted); border-radius: 5px; padding: 1px 5px; font: 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .icon-btn { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; background: transparent; border: 1px solid transparent; color: var(--text-2); cursor: pointer; }
+    .icon-btn:hover { background: var(--surface); border-color: var(--border); }
+    .icon-btn svg { width: 17px; height: 17px; }
+    .mobile-menu { display: none; }
+    main { width: min(1320px,100%); margin: 0 auto; padding: 38px 42px 70px; }
+    .welcome-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 27px; gap: 20px; }
+    .eyebrow { display: flex; align-items: center; gap: 8px; color: var(--accent); font-size: 10px; text-transform: uppercase; letter-spacing: .13em; font-weight: 750; margin-bottom: 10px; }
+    .eyebrow-line { width: 17px; height: 1px; background: var(--accent); }
+    h1,h2,h3,p { margin-top: 0; }
+    h1 { margin-bottom: 7px; font: 750 clamp(27px,3vw,35px)/1.16 Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: -.055em; }
+    .welcome-sub { color: var(--muted); font-size: 13px; margin: 0; }
+    .date-label { color: var(--muted); font: 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: nowrap; padding-bottom: 4px; }
+    .dashboard-grid { display: grid; grid-template-columns: minmax(0,1.65fr) minmax(280px,.88fr); gap: 19px; align-items: start; }
+    .left-column,.right-column { display: grid; gap: 19px; min-width: 0; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); min-width: 0; }
+    .card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 17px; }
+    .card-title { margin: 0; font: 700 14px Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: -.025em; }
+    .card-subtitle { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+    .text-link { display: inline-flex; align-items: center; gap: 5px; color: var(--accent); font-size: 11px; font-weight: 650; white-space: nowrap; }
+    .text-link:hover { color: var(--text); }
+    .continue-card { overflow: hidden; position: relative; padding: 23px 24px 21px; background: linear-gradient(116deg,var(--surface) 0%,var(--surface) 58%,color-mix(in srgb,var(--accent-soft) 78%,var(--surface)) 100%); }
+    .continue-card::after { content: ''; position: absolute; width: 250px; height: 250px; right: 8%; top: -155px; border-radius: 50%; border: 1px solid color-mix(in srgb,var(--accent) 20%,transparent); box-shadow: 0 0 0 24px color-mix(in srgb,var(--accent) 3%,transparent),0 0 0 50px color-mix(in srgb,var(--accent) 2%,transparent); pointer-events: none; }
+    .continue-meta { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 10px; font-weight: 650; text-transform: uppercase; letter-spacing: .08em; position: relative; z-index: 1; }
+    .course-mark { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 8px; background: var(--accent-soft); color: var(--accent); }
+    .course-mark svg { width: 14px; height: 14px; }
+    .continue-content { display: grid; grid-template-columns: minmax(0,1fr) 220px; gap: 20px; align-items: center; position: relative; z-index: 1; margin-top: 16px; }
+    .continue-content h2 { max-width: 440px; margin: 0 0 8px; font: 750 23px/1.22 Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: -.045em; }
+    .continue-content p { max-width: 410px; margin: 0 0 17px; color: var(--text-2); font-size: 12px; line-height: 1.65; }
+    .course-progress { display: flex; align-items: center; gap: 10px; max-width: 290px; margin-bottom: 17px; }
+    .progress-track { height: 5px; flex: 1; background: var(--surface-3); border-radius: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg,var(--accent-strong),#a7baff); }
+    .progress-value { font: 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--text-2); }
+    .primary-btn { min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 10px; padding: 0 14px; background: var(--accent-strong); color: #fff; font-size: 11px; font-weight: 700; cursor: pointer; box-shadow: 0 5px 15px color-mix(in srgb,var(--accent-strong) 26%,transparent); transition: transform .18s ease,filter .18s ease; }
+    .primary-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    .primary-btn svg { width: 14px; height: 14px; }
+    .concept-art { min-height: 154px; display: grid; place-items: center; position: relative; }
+    .concept-art svg { width: 100%; max-width: 220px; overflow: visible; }
+    .art-caption { position: absolute; right: 4px; bottom: 2px; color: var(--muted); font: 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+    .stat-card { padding: 16px 17px 15px; border-radius: var(--radius-md); background: var(--surface); border: 1px solid var(--border); }
+    .stat-top { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 10px; }
+    .stat-icon { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 9px; background: var(--surface-2); color: var(--accent); }
+    .stat-icon svg { width: 14px; height: 14px; }
+    .stat-value { margin-top: 10px; font: 750 24px/1 Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: -.05em; }
+    .stat-foot { margin-top: 6px; color: var(--muted); font-size: 10px; }
+    .stat-foot strong { color: var(--green); font-weight: 650; }
+    .paths-card,.activity-card,.recommend-card { padding: 20px; }
+    .path-list { display: grid; gap: 2px; }
+    .path-row { display: grid; grid-template-columns: 38px minmax(0,1fr) auto; gap: 11px; align-items: center; padding: 11px 8px; border-radius: 12px; transition: background .16s ease; }
+    .path-row:hover { background: var(--surface-hover); }
+    .path-icon { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 11px; color: var(--accent); background: var(--accent-soft); }
+    .path-icon svg { width: 17px; height: 17px; }
+    .path-name { font-size: 12px; font-weight: 700; }
+    .path-detail { color: var(--muted); font-size: 10px; margin-top: 3px; }
+    .path-end { width: 92px; text-align: right; }
+    .path-percent { font: 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--text-2); margin-bottom: 6px; }
+    .mini-track { height: 4px; width: 100%; border-radius: 8px; background: var(--surface-3); overflow: hidden; }
+    .mini-track span { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+    .activity-list { display: grid; gap: 16px; }
+    .activity-item { display: grid; grid-template-columns: 28px minmax(0,1fr); gap: 10px; align-items: start; }
+    .activity-icon { width: 27px; height: 27px; border-radius: 9px; display: grid; place-items: center; background: var(--surface-2); color: var(--cyan); }
+    .activity-icon svg { width: 13px; height: 13px; }
+    .activity-text { font-size: 11px; line-height: 1.5; color: var(--text-2); }
+    .activity-text strong { color: var(--text); font-weight: 650; }
+    .activity-time { margin-top: 3px; color: var(--muted); font: 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .streak-card { padding: 19px 20px; background: linear-gradient(135deg,var(--surface),color-mix(in srgb,var(--amber) 7%,var(--surface))); }
+    .streak-row { display: flex; align-items: center; justify-content: space-between; }
+    .streak-number { font: 750 28px/1 Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: -.05em; }
+    .streak-number span { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0; }
+    .streak-flame { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: color-mix(in srgb,var(--amber) 13%,transparent); color: var(--amber); }
+    .streak-flame svg { width: 20px; height: 20px; }
+    .week { display: grid; grid-template-columns: repeat(7,1fr); gap: 7px; margin-top: 17px; }
+    .day { display: grid; justify-items: center; gap: 7px; color: var(--muted); font: 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .day-dot { width: 23px; height: 23px; display: grid; place-items: center; border: 1px solid var(--border-strong); border-radius: 50%; font-size: 9px; }
+    .day.done .day-dot { background: color-mix(in srgb,var(--amber) 15%,transparent); color: var(--amber); border-color: color-mix(in srgb,var(--amber) 40%,transparent); }
+    .day.today { color: var(--text); font-weight: 700; }
+    .day.today .day-dot { border: 1px solid var(--amber); color: var(--amber); }
+    .recommend-item { display: flex; align-items: center; gap: 11px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .recommend-item:last-child { border: 0; padding-bottom: 0; }
+    .recommend-bullet { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); margin: 0 5px; flex: 0 0 auto; }
+    .recommend-name { font-size: 11px; font-weight: 650; }
+    .recommend-reason { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .recommend-arrow { margin-left: auto; color: var(--muted); }
+    .footer-note { text-align: center; margin-top: 28px; color: var(--subtle); font-size: 10px; }
+    .footer-note span { color: var(--muted); }
+    .overlay { display: none; position: fixed; inset: 0; z-index: 60; background: rgba(3,6,12,.65); backdrop-filter: blur(8px); padding: 14vh 20px 20px; }
+    .overlay.open { display: block; }
+    .search-modal { width: min(550px,100%); margin: 0 auto; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 17px; box-shadow: 0 28px 90px rgba(0,0,0,.4); overflow: hidden; }
+    .search-input-row { display: flex; align-items: center; gap: 11px; padding: 16px 18px; border-bottom: 1px solid var(--border); }
+    .search-input-row input { flex: 1; min-width: 0; border: 0; outline: 0; color: var(--text); background: transparent; font-size: 14px; }
+    .search-input-row input:focus-visible { box-shadow: none; }
+    .search-results { padding: 11px; }
+    .search-hint { color: var(--muted); font-size: 10px; padding: 4px 8px 9px; }
+    .search-result { display: flex; align-items: center; gap: 11px; width: 100%; padding: 10px; border: 0; background: transparent; border-radius: 9px; text-align: left; cursor: pointer; }
+    .search-result:hover { background: var(--surface-2); }
+    .search-result small { display: block; color: var(--muted); margin-top: 2px; font-size: 10px; }
+    .toast { position: fixed; left: 50%; bottom: 25px; z-index: 80; transform: translate(-50%,15px); opacity: 0; pointer-events: none; padding: 10px 15px; color: var(--text); background: var(--surface-3); border: 1px solid var(--border-strong); border-radius: 10px; box-shadow: var(--shadow); font-size: 11px; transition: .22s ease; }
+    .toast.show { opacity: 1; transform: translate(-50%,0); }
+    .mobile-scrim { display: none; }
+    @media (max-width: 1120px) {
+      :root { --sidebar: 224px; }
+      main { padding-left: 28px; padding-right: 28px; }
+      .topbar { padding: 0 28px; }
+      .continue-content { grid-template-columns: minmax(0,1fr) 175px; }
+    }
+    @media (max-width: 900px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .right-column { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }
+      .activity-card { grid-row: span 2; }
+    }
+    @media (max-width: 700px) {
+      :root { --sidebar: 260px; }
+      .sidebar { transform: translateX(-102%); transition: transform .23s ease; box-shadow: var(--shadow); }
+      body.menu-open .sidebar { transform: translateX(0); }
+      .mobile-scrim { display: block; position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,.52); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+      body.menu-open .mobile-scrim { opacity: 1; pointer-events: auto; }
+      .main-shell { margin-left: 0; }
+      .topbar { height: 62px; padding: 0 17px; }
+      .mobile-menu { display: grid; }
+      .crumbs { display: none; }
+      .search-trigger { width: 40px; height: 36px; justify-content: center; padding: 0; }
+      .search-trigger span,.search-trigger .keycap { display: none; }
+      main { padding: 28px 17px 48px; }
+      .welcome-row { align-items: start; margin-bottom: 21px; }
+      .date-label { display: none; }
+      .continue-content { grid-template-columns: 1fr; }
+      .concept-art { display: none; }
+      .continue-card { padding: 19px; }
+      .continue-content h2 { font-size: 21px; }
+      .stats-grid { gap: 8px; }
+      .stat-card { padding: 13px 11px; }
+      .stat-value { font-size: 21px; }
+      .stat-foot { font-size: 9px; }
+      .right-column { grid-template-columns: 1fr; }
+      .activity-card { grid-row: auto; }
+    }
+    @media (max-width: 390px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .stat-card { display: flex; align-items: center; gap: 12px; }
+      .stat-value { margin: 0 0 0 auto; }
+      .stat-foot { display: none; }
+      .stat-top { flex: 1; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="mobile-scrim" id="scrim" aria-hidden="true"></div>
+  <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+    <a class="brand" href="#home" aria-label="Lumenode home">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 17.5 12 5l7 12.5H5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8.3 17.5 12 11l3.7 6.5M12 5v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="5" r="1.3" fill="currentColor"/><circle cx="5" cy="17.5" r="1.3" fill="currentColor"/><circle cx="19" cy="17.5" r="1.3" fill="currentColor"/></svg></span>
+      <span class="brand-name">lumenode<span class="brand-version">1.1</span></span>
+    </a>
+    <div class="nav-group">
+      <div class="nav-label">Workspace</div>
+      <nav class="nav-list">
+        <a class="nav-link active" href="#home" data-nav="Home"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="7" height="7" rx="1.8" stroke="currentColor" stroke-width="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.8" stroke="currentColor" stroke-width="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.8" stroke="currentColor" stroke-width="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.8" stroke="currentColor" stroke-width="1.6"/></svg>Home</a>
+        <a class="nav-link" href="#explore" data-nav="Explore"><svg viewBox="0 0 24 24" fill="none"><circle cx="10.8" cy="10.8" r="7.3" stroke="currentColor" stroke-width="1.6"/><path d="m16.2 16.2 4.2 4.2M13.8 8l-2.2 4.1-4.1 2.2 2.2-4.1L13.8 8Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Explore</a>
+        <a class="nav-link" href="#learning-paths" data-nav="Learning paths"><svg viewBox="0 0 24 24" fill="none"><path d="M5 5.5h14M5 12h9M5 18.5h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="17" cy="12" r="2" stroke="currentColor" stroke-width="1.5"/></svg>Learning paths<span class="nav-count">05</span></a>
+        <a class="nav-link" href="#practice" data-nav="Practice"><svg viewBox="0 0 24 24" fill="none"><path d="m12 3 2.4 5.1L20 9l-4.1 3.9 1 5.6-4.9-2.7-4.9 2.7 1-5.6L4 9l5.6-.9L12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Practice</a>
+      </nav>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Study tools</div>
+      <nav class="nav-list">
+        <a class="nav-link" href="#laboratories" data-nav="Laboratories"><svg viewBox="0 0 24 24" fill="none"><path d="M9 3.8h6M10 3.8v6.1l-5 8.2a1.7 1.7 0 0 0 1.5 2.5h11a1.7 1.7 0 0 0 1.5-2.5l-5-8.2V3.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.8 16h8.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Laboratories</a>
+        <a class="nav-link" href="#concepts" data-nav="Concept explorer"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2.2" stroke="currentColor" stroke-width="1.5"/><circle cx="5" cy="18" r="2.2" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="18" r="2.2" stroke="currentColor" stroke-width="1.5"/><path d="m10.9 7-4.8 8.9M13.1 7l4.8 8.9M7.3 18h9.4" stroke="currentColor" stroke-width="1.5"/></svg>Concept explorer</a>
+        <a class="nav-link" href="#glossary" data-nav="Glossary"><svg viewBox="0 0 24 24" fill="none"><path d="M5 4.5h14v15H5zM8 8h8M8 11.5h8M8 15h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Glossary</a>
+      </nav>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-note"><div class="note-top"><span class="note-dot"></span> Your progress stays yours</div><p>Your learning history is saved locally. Export a backup anytime from your profile.</p></div>
+      <div class="profile"><div class="avatar">LN</div><div><div class="profile-name">Learner profile</div><div class="profile-meta">Local workspace · Demo data</div></div><span class="profile-more"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/></svg></span></div>
+    </div>
+  </aside>
+
+  <div class="main-shell">
+    <header class="topbar">
+      <div class="crumbs"><span>Workspace</span><span>›</span><span class="crumb-current">Home</span></div>
+      <div class="top-actions">
+        <button class="icon-btn mobile-menu" id="menuBtn" aria-label="Open navigation" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+        <button class="search-trigger" id="searchBtn" aria-label="Search lessons and concepts"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="10.8" cy="10.8" r="7.1" stroke="currentColor" stroke-width="1.6"/><path d="m16 16 4.3 4.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Search lessons, concepts...</span><kbd class="keycap">⌘ K</kbd></button>
+        <button class="icon-btn" id="themeBtn" aria-label="Switch color theme" title="Switch theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3.7" stroke="currentColor" stroke-width="1.5"/><path d="M12 2.8v2M12 19.2v2M21.2 12h-2M4.8 12h-2m15.7-6.5-1.4 1.4M6.9 17.1l-1.4 1.4m13 0-1.4-1.4M6.9 6.9 5.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+        <button class="icon-btn" aria-label="Help and shortcuts" id="helpBtn" title="Keyboard shortcuts"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M9.7 9a2.4 2.4 0 1 1 4.4 1.3c-.9 1.1-2.1 1.3-2.1 2.8M12 16.7v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+      </div>
+    </header>
+
+    <main id="home">
+      <div class="welcome-row">
+        <div><div class="eyebrow"><span class="eyebrow-line"></span> YOUR LEARNING SPACE</div><h1>Make room for a new idea.</h1><p class="welcome-sub">A little progress, consistently made, becomes deep understanding.</p></div>
+        <div class="date-label">WEDNESDAY · LEARNING OVERVIEW</div>
+      </div>
+
+      <div class="dashboard-grid">
+        <section class="left-column" aria-label="Learning overview">
+          <article class="card continue-card">
+            <div class="continue-meta"><span class="course-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M5 5.5h14v13H5zM8 9h8M8 12h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span> CONTINUE LEARNING <span>·</span> C PROGRAMMING</div>
+            <div class="continue-content">
+              <div>
+                <h2>Understand pointers, not just the syntax.</h2>
+                <p>See how addresses, references and dereferencing connect. Pick up where your last session ended.</p>
+                <div class="course-progress"><div class="progress-track"><div class="progress-fill" style="width:62%"></div></div><span class="progress-value">62%</span></div>
+                <button class="primary-btn demo-action" data-message="Demo: open /lessons/c-pointers-basics with saved progress.">Resume lesson <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              </div>
+              <div class="concept-art" aria-label="Illustration of pointer relationships between memory cells">
+                <svg viewBox="0 0 230 154" role="img" aria-labelledby="memoryTitle"><title id="memoryTitle">Illustrative pointer and memory diagram</title>
+                  <defs><linearGradient id="nodeGrad" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#8BA8FF"/><stop offset="1" stop-color="#6688E9"/></linearGradient></defs>
+                  <path d="M49 74 C77 74 75 34 112 34 S148 74 178 74" fill="none" stroke="#7D9AFF" stroke-width="1.5" stroke-dasharray="4 4" opacity=".85"/><path d="M49 83 C82 83 92 121 135 121" fill="none" stroke="#69D2CE" stroke-width="1.4" stroke-dasharray="3 4" opacity=".8"/>
+                  <rect x="10" y="51" width="63" height="46" rx="10" fill="url(#nodeGrad)"/><text x="41.5" y="69" fill="#142044" text-anchor="middle" font-size="9" font-family="ui-monospace, monospace">ptr</text><text x="41.5" y="84" fill="#142044" text-anchor="middle" font-size="13" font-weight="700" font-family="ui-monospace, monospace">0x24</text>
+                  <rect x="112" y="12" width="84" height="45" rx="10" fill="#202D41" stroke="#6D8FF2" stroke-opacity=".8"/><text x="154" y="29" fill="#AABEFF" text-anchor="middle" font-size="8" font-family="ui-monospace, monospace">ADDRESS</text><text x="154" y="44" fill="#F1F5FF" text-anchor="middle" font-size="12" font-family="ui-monospace, monospace">0x24</text>
+                  <rect x="135" y="99" width="84" height="45" rx="10" fill="#1D3439" stroke="#69D2CE" stroke-opacity=".8"/><text x="177" y="116" fill="#81D8D2" text-anchor="middle" font-size="8" font-family="ui-monospace, monospace">VALUE</text><text x="177" y="131" fill="#E5FFFC" text-anchor="middle" font-size="12" font-family="ui-monospace, monospace">42</text>
+                  <circle cx="49" cy="74" r="3" fill="#fff"/><circle cx="154" cy="34" r="3" fill="#9FB5FF"/><circle cx="177" cy="121" r="3" fill="#7FE1DA"/>
+                </svg><span class="art-caption">ILLUSTRATIVE MEMORY MODEL</span>
+              </div>
+            </div>
+          </article>
+
+          <div class="stats-grid" aria-label="Learning statistics — sample data">
+            <article class="stat-card"><div class="stat-top"><span>Concepts mastered</span><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.4 4.2L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div><div class="stat-value">12</div><div class="stat-foot"><strong>+3</strong> this month</div></article>
+            <article class="stat-card"><div class="stat-top"><span>Learning streak</span><span class="stat-icon" style="color:var(--amber)"><svg viewBox="0 0 24 24" fill="none"><path d="M13.2 3.5c.7 3.4-2.5 4.4-1 7.1 1.5-1 2.5-2.2 2.6-3.4 3 2.3 4.7 5 3.7 8.2a6.7 6.7 0 0 1-13-1.5c-.2-2.8 1.4-5 4.1-7.1-.3 2.4.6 3.7 1.5 4.2.1-3.1.7-5.5 2.1-7.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span></div><div class="stat-value">8 <span style="font-size:12px;color:var(--muted);font-weight:600">days</span></div><div class="stat-foot">Consistency builds fluency</div></article>
+            <article class="stat-card"><div class="stat-top"><span>Study time</span><span class="stat-icon" style="color:var(--cyan)"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.5"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></div><div class="stat-value">4h 20m</div><div class="stat-foot">Across your recent sessions</div></article>
+          </div>
+
+          <article class="card paths-card" id="learning-paths">
+            <div class="card-head"><div><h2 class="card-title">Your learning paths</h2><p class="card-subtitle">A clear route through the things you're exploring.</p></div><a class="text-link" href="#explore">All paths <span>↗</span></a></div>
+            <div class="path-list">
+              <a href="#c-path" class="path-row"><span class="path-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M15.5 7.2a6 6 0 1 0 0 9.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span><span class="path-name">C Programming</span><span class="path-detail">Systems foundations · 9 lessons</span></span><span class="path-end"><span class="path-percent">62%</span><span class="mini-track"><span style="width:62%"></span></span></span></a>
+              <a href="#dsa-path" class="path-row"><span class="path-icon" style="color:var(--cyan);background:color-mix(in srgb,var(--cyan) 12%,transparent)"><svg viewBox="0 0 24 24" fill="none"><circle cx="6" cy="6" r="2.2" stroke="currentColor" stroke-width="1.5"/><circle cx="18" cy="6" r="2.2" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="18" r="2.2" stroke="currentColor" stroke-width="1.5"/><path d="m8 7.4 2.8 8.1m5.2-8.1-2.8 8.1M8.2 6h7.6" stroke="currentColor" stroke-width="1.5"/></svg></span><span><span class="path-name">Data Structures & Algorithms</span><span class="path-detail">Problem solving · 8 lessons</span></span><span class="path-end"><span class="path-percent">35%</span><span class="mini-track"><span style="width:35%;background:var(--cyan)"></span></span></span></a>
+              <a href="#dbms-path" class="path-row"><span class="path-icon" style="color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent)"><svg viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="5.5" rx="7" ry="2.8" stroke="currentColor" stroke-width="1.5"/><path d="M5 5.5v12.8c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V5.5M5 11.8c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8" stroke="currentColor" stroke-width="1.5"/></svg></span><span><span class="path-name">Database Systems</span><span class="path-detail">Relational thinking · 7 lessons</span></span><span class="path-end"><span class="path-percent">18%</span><span class="mini-track"><span style="width:18%;background:var(--green)"></span></span></span></a>
+            </div>
+          </article>
+        </section>
+
+        <aside class="right-column" aria-label="Learning activity and recommendations">
+          <article class="card streak-card">
+            <div class="card-head" style="margin-bottom:0"><div><h2 class="card-title">Your rhythm</h2><p class="card-subtitle">Small steps add up.</p></div><span class="streak-flame"><svg viewBox="0 0 24 24" fill="none"><path d="M13.2 3.5c.7 3.4-2.5 4.4-1 7.1 1.5-1 2.5-2.2 2.6-3.4 3 2.3 4.7 5 3.7 8.2a6.7 6.7 0 0 1-13-1.5c-.2-2.8 1.4-5 4.1-7.1-.3 2.4.6 3.7 1.5 4.2.1-3.1.7-5.5 2.1-7.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span></div>
+            <div class="streak-row" style="margin-top:14px"><div class="streak-number">8 <span>day streak</span></div><span style="font-size:10px;color:var(--muted)">This week</span></div>
+            <div class="week" aria-label="Weekly activity sample"><div class="day done"><span>M</span><span class="day-dot">✓</span></div><div class="day done"><span>T</span><span class="day-dot">✓</span></div><div class="day today"><span>W</span><span class="day-dot">•</span></div><div class="day"><span>T</span><span class="day-dot"></span></div><div class="day"><span>F</span><span class="day-dot"></span></div><div class="day"><span>S</span><span class="day-dot"></span></div><div class="day"><span>S</span><span class="day-dot"></span></div></div>
+          </article>
+
+          <article class="card activity-card">
+            <div class="card-head"><div><h2 class="card-title">Recent activity</h2><p class="card-subtitle">Your latest learning moments.</p></div><a class="text-link" href="#activity">View all</a></div>
+            <div class="activity-list">
+              <div class="activity-item"><span class="activity-icon"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="activity-text">Completed <strong>Pointer arithmetic</strong></div><div class="activity-time">TODAY · 10:42 AM</div></div></div>
+              <div class="activity-item"><span class="activity-icon" style="color:var(--amber)"><svg viewBox="0 0 24 24" fill="none"><path d="M5 19V5m0 14h15M8 15l3-4 3 2 5-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="activity-text">Practiced <strong>Binary search</strong></div><div class="activity-time">YESTERDAY · 6:18 PM</div></div></div>
+              <div class="activity-item"><span class="activity-icon" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="none"><path d="M7 4.5h10v15H7zM9.5 8h5m-5 3.5h5m-5 3.5h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><div><div class="activity-text">Read <strong>SQL joins</strong></div><div class="activity-time">MONDAY · 8:05 PM</div></div></div>
+            </div>
+          </article>
+
+          <article class="card recommend-card" id="practice">
+            <div class="card-head"><div><h2 class="card-title">A good next step</h2><p class="card-subtitle">Based on your learning path.</p></div><span style="color:var(--accent);font-size:15px">✦</span></div>
+            <a href="#recommend-1" class="recommend-item"><span class="recommend-bullet"></span><span><span class="recommend-name">Dynamic memory allocation</span><span class="recommend-reason">Builds on pointers</span></span><span class="recommend-arrow">↗</span></a>
+            <a href="#recommend-2" class="recommend-item"><span class="recommend-bullet" style="background:var(--cyan)"></span><span><span class="recommend-name">Linked list operations</span><span class="recommend-reason">Apply pointer concepts</span></span><span class="recommend-arrow">↗</span></a>
+          </article>
+        </aside>
+      </div>
+      <p class="footer-note">Lumenode <span>·</span> Explore. Understand. Build. <span>·</span> Dashboard concept with illustrative sample data</p>
+    </main>
+  </div>
+</div>
+
+<div class="overlay" id="searchOverlay" role="dialog" aria-modal="true" aria-labelledby="searchTitle">
+  <div class="search-modal">
+    <div class="search-input-row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="7.1" stroke="currentColor" stroke-width="1.6"/><path d="m16 16 4.3 4.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><label id="searchTitle" for="searchInput" class="sr-only" style="position:absolute;left:-10000px">Search Lumenode</label><input id="searchInput" placeholder="Search lessons, concepts, subjects..." autocomplete="off"/><kbd class="keycap">ESC</kbd></div>
+    <div class="search-results"><div class="search-hint">SUGGESTED</div>
+      <button class="search-result" data-search="Pointers and addresses"><span class="path-icon">⌁</span><span>Pointers and addresses<small>C Programming · Concept</small></span></button>
+      <button class="search-result" data-search="Singly linked lists"><span class="path-icon">⌘</span><span>Singly linked lists<small>Data Structures · Lesson</small></span></button>
+      <button class="search-result" data-search="SQL joins"><span class="path-icon">▤</span><span>SQL joins<small>DBMS · Lesson</small></span></button>
+      <button class="search-result" data-search="Binary search"><span class="path-icon">⌕</span><span>Binary search<small>Algorithms · Concept</small></span></button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+  const root = document.documentElement;
+  const themeBtn = document.getElementById('themeBtn');
+  const themeIcon = document.getElementById('themeIcon');
+  function setTheme(theme) {
+    root.dataset.theme = theme;
+    themeIcon.innerHTML = theme === 'dark'
+      ? '<circle cx="12" cy="12" r="3.7" stroke="currentColor" stroke-width="1.5"/><path d="M12 2.8v2M12 19.2v2M21.2 12h-2M4.8 12h-2m15.7-6.5-1.4 1.4M6.9 17.1l-1.4 1.4m13 0-1.4-1.4M6.9 6.9 5.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>'
+      : '<path d="M20.2 15.2A8.7 8.7 0 0 1 8.8 3.8 8.8 8.8 0 1 0 20.2 15.2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>';
+  }
+  themeBtn.addEventListener('click', () => setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'));
+  const overlay = document.getElementById('searchOverlay');
+  const searchInput = document.getElementById('searchInput');
+  function openSearch() { overlay.classList.add('open'); setTimeout(() => searchInput.focus(), 20); }
+  function closeSearch() { overlay.classList.remove('open'); searchInput.value = ''; }
+  document.getElementById('searchBtn').addEventListener('click', openSearch);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeSearch(); });
+  document.querySelectorAll('.search-result').forEach(btn => btn.addEventListener('click', () => { closeSearch(); showToast('Prototype: connect this result to the existing concept route.'); }));
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase();
+    document.querySelectorAll('.search-result').forEach(btn => btn.style.display = btn.dataset.search.toLowerCase().includes(q) ? 'flex' : 'none');
+  });
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openSearch(); }
+    if (e.key === '/' && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName) && !overlay.classList.contains('open')) { e.preventDefault(); openSearch(); }
+    if (e.key === 'Escape') { closeSearch(); document.body.classList.remove('menu-open'); document.getElementById('menuBtn').setAttribute('aria-expanded','false'); }
+  });
+  const menuBtn = document.getElementById('menuBtn');
+  menuBtn.addEventListener('click', () => { const open = document.body.classList.toggle('menu-open'); menuBtn.setAttribute('aria-expanded', String(open)); });
+  document.getElementById('scrim').addEventListener('click', () => { document.body.classList.remove('menu-open'); menuBtn.setAttribute('aria-expanded','false'); });
+  document.querySelectorAll('.nav-link').forEach(link => link.addEventListener('click', () => {
+    document.querySelectorAll('.nav-link').forEach(x => x.classList.remove('active'));
+    link.classList.add('active');
+    document.querySelector('.crumb-current').textContent = link.dataset.nav;
+    document.body.classList.remove('menu-open'); menuBtn.setAttribute('aria-expanded','false');
+  }));
+  let toastTimer;
+  function showToast(message) { const toast = document.getElementById('toast'); toast.textContent = message; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 2800); }
+  document.querySelectorAll('.demo-action').forEach(btn => btn.addEventListener('click', () => showToast(btn.dataset.message)));
+  document.getElementById('helpBtn').addEventListener('click', () => showToast('Shortcuts: ⌘/Ctrl + K to search · / to focus search · Esc to close'));
+</script>
+</body>
+</html>

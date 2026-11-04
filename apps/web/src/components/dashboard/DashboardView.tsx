@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Play, 
@@ -12,20 +12,18 @@ import {
   ArrowRight, 
   CheckCircle2, 
   Award,
-  Zap,
-  Sparkles,
   Download,
   Upload,
   RotateCcw,
-  Compass,
-  AlertTriangle,
-  Flame,
-  BookOpen
+  BookOpen,
+  TrendingUp,
+  Clock
 } from 'lucide-react';
 import { SUBJECTS } from '../../data/subjects';
 import { LESSONS } from '../../data/lessons';
 import { CONCEPTS } from '../../data/concepts';
 import { useProgress } from '../../context/ProgressContext';
+import { ExerciseAttempt } from '@lumenode/shared-types';
 
 export const DashboardView: React.FC = () => {
   const { 
@@ -41,25 +39,158 @@ export const DashboardView: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<string | null>(null);
 
-  const currentLesson = LESSONS.find(l => l.id === activeLessonId) || LESSONS[0];
+  // 1. Current Lesson for Continue Learning Card
+  const currentLesson = useMemo(() => {
+    return LESSONS.find(l => l.id === activeLessonId) || LESSONS[0];
+  }, [activeLessonId]);
 
-  // Count mastery states across all concepts
-  const masteryCounts = {
-    demonstrated: 0,
-    practicing: 0,
-    learning: 0,
-    needs_review: 0,
-    not_started: 0,
+  const currentConcept = useMemo(() => {
+    return CONCEPTS.find(c => c.id === currentLesson.conceptId);
+  }, [currentLesson]);
+
+  const currentSubject = useMemo(() => {
+    const subjectId = currentConcept?.subjectId;
+    return SUBJECTS.find(s => s.id === subjectId) || SUBJECTS[0];
+  }, [currentConcept]);
+
+  // Real lesson progress in current subject (derived through canonical concepts)
+  const currentSubjectLessons = useMemo(() => {
+    return LESSONS.filter(l => {
+      const c = CONCEPTS.find(concept => concept.id === l.conceptId);
+      return c?.subjectId === currentSubject.id;
+    });
+  }, [currentSubject]);
+
+  const currentSubjectCompletedCount = useMemo(() => {
+    return currentSubjectLessons.filter(l => completedLessons.has(l.id)).length;
+  }, [currentSubjectLessons, completedLessons]);
+
+  const currentSubjectProgressPct = useMemo(() => {
+    if (currentSubjectLessons.length === 0) return 0;
+    return Math.round((currentSubjectCompletedCount / currentSubjectLessons.length) * 100);
+  }, [currentSubjectCompletedCount, currentSubjectLessons]);
+
+  // 2. Metrics (strictly backed by real state)
+  const demonstratedMasteryCount = useMemo(() => {
+    return Object.values(masteryRecords).filter(
+      r => r.achievementLevel === 'mastered' || r.state === 'demonstrated'
+    ).length;
+  }, [masteryRecords]);
+
+  const reviewDueCount = useMemo(() => {
+    return Object.values(masteryRecords).filter(
+      r => r.retentionStatus === 'due' || r.retentionStatus === 'overdue' || r.state === 'needs_review'
+    ).length;
+  }, [masteryRecords]);
+
+  // Overall lesson completion percentage
+  const overallCompletionPct = useMemo(() => {
+    if (LESSONS.length === 0) return 0;
+    return Math.round((completedLessons.size / LESSONS.length) * 100);
+  }, [completedLessons]);
+
+  // 3. Real Active Learning Paths
+  const activeLearningPaths = useMemo(() => {
+    return SUBJECTS.map(subject => {
+      const subjectLessons = LESSONS.filter(l => {
+        const c = CONCEPTS.find(concept => concept.id === l.conceptId);
+        return c?.subjectId === subject.id;
+      });
+      const doneCount = subjectLessons.filter(l => completedLessons.has(l.id)).length;
+      const totalCount = subjectLessons.length;
+      const percent = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+      return {
+        subject,
+        lessonsCount: totalCount,
+        completedCount: doneCount,
+        percent,
+      };
+    });
+  }, [completedLessons]);
+
+  // 4. Learning Rhythm (Weekly Consistency based on genuine evidence timestamps)
+  const rhythmDays = useMemo(() => {
+    const today = new Date();
+    const currentDayOfWeek = today.getDay(); // 0 is Sunday, 1 is Monday...
+    // Start of current week (Monday)
+    const mondayOffset = (currentDayOfWeek + 6) % 7;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - mondayOffset);
+    monday.setHours(0, 0, 0, 0);
+
+    // Collect timestamps of verified learner actions
+    const activeDates = new Set<string>();
+    Object.values(masteryRecords).forEach(record => {
+      if (record.demonstratedAt) {
+        const d = new Date(record.demonstratedAt);
+        activeDates.add(d.toISOString().slice(0, 10));
+      }
+      if (record.lastAttemptAt) {
+        const d = new Date(record.lastAttemptAt);
+        activeDates.add(d.toISOString().slice(0, 10));
+      }
+      record.evidenceHistory?.forEach(att => {
+        if (att.timestamp) {
+          const d = new Date(att.timestamp);
+          activeDates.add(d.toISOString().slice(0, 10));
+        }
+      });
+    });
+
+    const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((label, index) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + index);
+      const dateStr = d.toISOString().slice(0, 10);
+      const isToday = dateStr === today.toISOString().slice(0, 10);
+      const isDone = activeDates.has(dateStr);
+      return {
+        label,
+        dateStr,
+        isToday,
+        isDone,
+      };
+    });
+
+    const completedDaysThisWeek = days.filter(d => d.isDone).length;
+    return { days, completedDaysThisWeek };
+  }, [masteryRecords]);
+
+  // 5. Recent Activity (strictly from evidence history)
+  const recentActivities = useMemo(() => {
+    const attemptsWithConcept: Array<{
+      attempt: ExerciseAttempt;
+      conceptTitle: string;
+      lessonTitle?: string;
+    }> = [];
+
+    Object.values(masteryRecords).forEach(record => {
+      const concept = CONCEPTS.find(c => c.id === record.conceptId);
+      const lesson = LESSONS.find(l => l.conceptId === record.conceptId);
+      record.evidenceHistory?.forEach(att => {
+        attemptsWithConcept.push({
+          attempt: att,
+          conceptTitle: concept?.title || record.conceptId,
+          lessonTitle: lesson?.title.split(':')[0],
+        });
+      });
+    });
+
+    attemptsWithConcept.sort((a, b) => b.attempt.timestamp - a.attempt.timestamp);
+    return attemptsWithConcept.slice(0, 4);
+  }, [masteryRecords]);
+
+  // Formatter for relative activity time
+  const formatTimeAgo = (timestamp: number) => {
+    const diffSec = Math.floor((Date.now() - timestamp) / 1000);
+    if (diffSec < 60) return 'JUST NOW';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m AGO`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `${diffHours}h AGO`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return 'YESTERDAY';
+    return `${diffDays}d AGO`;
   };
-
-  CONCEPTS.forEach(c => {
-    const rec = masteryRecords[c.id];
-    if (!rec || rec.state === 'not_started') {
-      masteryCounts.not_started++;
-    } else {
-      masteryCounts[rec.state]++;
-    }
-  });
 
   const handleExportBackup = () => {
     const snapshot = exportBackup();
@@ -97,311 +228,463 @@ export const DashboardView: React.FC = () => {
 
   const getSubjectIcon = (iconName: string) => {
     switch (iconName) {
-      case 'Terminal': return <Terminal className="w-5 h-5 text-blue-400" />;
-      case 'Cpu': return <Cpu className="w-5 h-5 text-cyan-400" />;
-      case 'Code2': return <Code2 className="w-5 h-5 text-emerald-400" />;
-      case 'Network': return <Network className="w-5 h-5 text-violet-400" />;
-      case 'Layers': return <Layers className="w-5 h-5 text-amber-400" />;
-      case 'Boxes': return <Boxes className="w-5 h-5 text-rose-400" />;
-      case 'Database': return <Database className="w-5 h-5 text-emerald-400" />;
-      default: return <Terminal className="w-5 h-5 text-blue-400" />;
+      case 'Terminal': return <Terminal className="w-5 h-5 text-[var(--accent)]" />;
+      case 'Cpu': return <Cpu className="w-5 h-5 text-[var(--cyan)]" />;
+      case 'Code2': return <Code2 className="w-5 h-5 text-[var(--green)]" />;
+      case 'Network': return <Network className="w-5 h-5 text-[var(--accent)]" />;
+      case 'Layers': return <Layers className="w-5 h-5 text-[var(--amber)]" />;
+      case 'Boxes': return <Boxes className="w-5 h-5 text-[var(--rose)]" />;
+      case 'Database': return <Database className="w-5 h-5 text-[var(--green)]" />;
+      default: return <Terminal className="w-5 h-5 text-[var(--accent)]" />;
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 space-y-10">
-      {/* Hero / Continue Learning Banner */}
-      <div className="relative rounded-2xl bg-gradient-to-r from-blue-950/80 via-[#0E1526] to-[#0A0F1D] border border-blue-500/30 p-6 sm:p-8 overflow-hidden shadow-2xl">
-        <div className="relative z-10 max-w-2xl space-y-4">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full border border-blue-400/30 text-xs font-mono font-semibold">
-            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-            <span>Lumenode v0.1 • Interactive CS Learning</span>
+    <div className="w-full max-w-[1320px] mx-auto py-2 sm:py-6 px-1 sm:px-4 space-y-7">
+      {/* 1. Orientation Heading */}
+      <section className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
+        <div>
+          <div className="flex items-center gap-2 text-[var(--accent)] text-[10px] font-bold uppercase tracking-[0.14em] mb-2">
+            <span className="w-4 h-[1px] bg-[var(--accent)]" aria-hidden="true" />
+            <span>YOUR LEARNING SPACE</span>
           </div>
-
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Explore. Understand. Build.
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--text)] tracking-tight">
+            Make room for a new idea.
           </h1>
-
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-            Bridge theoretical computer science and practical systems programming through real code execution, 
-            interactive memory maps, and step-by-step algorithm laboratories.
+          <p className="text-xs sm:text-sm text-[var(--muted)] mt-1">
+            A little progress, consistently made, becomes deep understanding.
           </p>
-
-          <div className="pt-2 flex flex-wrap items-center gap-4">
-            <Link
-              to={`/lessons/${currentLesson.id}`}
-              className="flex items-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-600/30 cursor-pointer"
-            >
-              <Play className="w-4 h-4 fill-current" />
-              <span>Resume: {currentLesson.title.split(':')[0]}</span>
-            </Link>
-
-            <Link
-              to="/labs/dsa"
-              className="flex items-center space-x-2 px-4 py-2.5 bg-slate-900/90 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition cursor-pointer"
-            >
-              <Zap className="w-4 h-4 text-amber-400" />
-              <span>Open Visual Labs</span>
-            </Link>
-          </div>
         </div>
-
-        {/* Subtle decorative glow */}
-        <div className="absolute right-0 top-0 bottom-0 w-96 bg-gradient-to-l from-blue-600/10 to-transparent pointer-events-none" />
-      </div>
-
-      {/* Progress & Concept Mastery Summary */}
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl bg-[#111827] border border-slate-800 flex items-center space-x-3">
-            <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-lg">
-              <Award className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-xl font-bold font-mono text-emerald-400">{masteryCounts.demonstrated}</div>
-              <div className="text-xs text-slate-400">Mastered</div>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-[#111827] border border-slate-800 flex items-center space-x-3">
-            <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-lg">
-              <Flame className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-xl font-bold font-mono text-blue-400">{masteryCounts.practicing}</div>
-              <div className="text-xs text-slate-400">Practicing</div>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-[#111827] border border-slate-800 flex items-center space-x-3">
-            <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-lg">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-xl font-bold font-mono text-amber-400">{masteryCounts.needs_review}</div>
-              <div className="text-xs text-slate-400">Needs Review</div>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-[#111827] border border-slate-800 flex items-center space-x-3">
-            <div className="p-2.5 bg-slate-800 text-slate-300 rounded-lg">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-xl font-bold font-mono text-slate-200">{completedLessons.size} / {LESSONS.length}</div>
-              <div className="text-xs text-slate-400">Lessons Finished</div>
-            </div>
-          </div>
+        <div className="text-[10px] font-mono text-[var(--muted)] hidden sm:block whitespace-nowrap">
+          {new Date().toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase()} · OVERVIEW
         </div>
-      </div>
+      </section>
 
-      {/* Recommended Learning Path */}
-      {recommendations.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center space-x-2">
-            <Compass className="w-5 h-5 text-blue-400" />
-            <h2 className="text-lg font-bold text-slate-100">Recommended Next Steps</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {recommendations.slice(0, 3).map((rec) => {
-              const targetLessonId = rec.suggestedLessonId || currentLesson.id;
-              const recLesson = LESSONS.find(l => l.id === targetLessonId) || currentLesson;
-              return (
-                <div
-                  key={rec.id}
-                  className="p-5 rounded-xl bg-[#111827] border border-slate-800 hover:border-blue-500/50 transition flex flex-col justify-between"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium border ${
-                        rec.urgency === 'high'
-                          ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                          : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                      }`}>
-                        {rec.type.replace('_', ' ')}
-                      </span>
-                      <span className="text-[11px] font-mono text-slate-400">
-                        {recLesson.difficulty}
-                      </span>
-                    </div>
-
-                    <h3 className="font-semibold text-slate-100 text-sm">{rec.conceptTitle}</h3>
-                    <p className="text-xs text-slate-400 leading-relaxed">{rec.reason}</p>
-                  </div>
-
-                  <div className="pt-4 mt-3 border-t border-slate-800/80">
-                    <Link
-                      to={`/lessons/${targetLessonId}`}
-                      className="inline-flex items-center text-xs font-semibold text-blue-400 hover:text-blue-300"
-                    >
-                      <BookOpen className="w-3.5 h-3.5 mr-1" />
-                      Study Concept <ArrowRight className="w-3 h-3 ml-1" />
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Interactive Laboratories Showcase */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-bold text-slate-100">Interactive Laboratories</h2>
-            <p className="text-xs text-slate-400">Real in-browser engines and step-by-step visualizations</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link
-            to="/labs/dsa"
-            className="p-5 rounded-xl bg-[#111827] border border-slate-800 hover:border-blue-500/50 transition cursor-pointer group"
+      {/* Main Two-Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.9fr)] gap-5 items-start">
+        {/* Left Column: Primary Learning Flow */}
+        <div className="grid gap-5 min-w-0">
+          {/* 2. Dominant Continue Learning Hero Card */}
+          <article 
+            className="rounded-[22px] border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-7 relative overflow-hidden shadow-[var(--shadow)]"
+            style={{
+              background: 'linear-gradient(116deg, var(--surface) 0%, var(--surface) 58%, color-mix(in srgb, var(--accent-soft) 78%, var(--surface)) 100%)'
+            }}
           >
-            <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-lg w-max mb-3 group-hover:scale-105 transition">
-              <Network className="w-5 h-5" />
-            </div>
-            <h3 className="font-semibold text-slate-100 text-sm mb-1 group-hover:text-blue-400 transition">
-              DSA Visualizer
-            </h3>
-            <p className="text-xs text-slate-400 mb-3">Linked lists, BST, AVL trees & B+ tree index.</p>
-            <span className="text-[11px] font-mono text-blue-400 flex items-center group-hover:translate-x-1 transition">
-              Launch Lab <ArrowRight className="w-3 h-3 ml-1" />
-            </span>
-          </Link>
-
-          <Link
-            to="/labs/memory"
-            className="p-5 rounded-xl bg-[#111827] border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer group"
-          >
-            <div className="p-2.5 bg-cyan-500/10 text-cyan-400 rounded-lg w-max mb-3 group-hover:scale-105 transition">
-              <Layers className="w-5 h-5" />
-            </div>
-            <h3 className="font-semibold text-slate-100 text-sm mb-1 group-hover:text-cyan-400 transition">
-              Memory & Pointer Sim
-            </h3>
-            <p className="text-xs text-slate-400 mb-3">Stack frames, activation records & heap blocks.</p>
-            <span className="text-[11px] font-mono text-cyan-400 flex items-center group-hover:translate-x-1 transition">
-              Launch Lab <ArrowRight className="w-3 h-3 ml-1" />
-            </span>
-          </Link>
-
-          <Link
-            to="/labs/sql"
-            className="p-5 rounded-xl bg-[#111827] border border-slate-800 hover:border-emerald-500/50 transition cursor-pointer group"
-          >
-            <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-lg w-max mb-3 group-hover:scale-105 transition">
-              <Database className="w-5 h-5" />
-            </div>
-            <h3 className="font-semibold text-slate-100 text-sm mb-1 group-hover:text-emerald-400 transition">
-              SQL Playground
-            </h3>
-            <p className="text-xs text-slate-400 mb-3">Genuine SQLite WASM relational join sandbox.</p>
-            <span className="text-[11px] font-mono text-emerald-400 flex items-center group-hover:translate-x-1 transition">
-              Launch Lab <ArrowRight className="w-3 h-3 ml-1" />
-            </span>
-          </Link>
-
-          <Link
-            to="/labs/code"
-            className="p-5 rounded-xl bg-[#111827] border border-slate-800 hover:border-violet-500/50 transition cursor-pointer group"
-          >
-            <div className="p-2.5 bg-violet-500/10 text-violet-400 rounded-lg w-max mb-3 group-hover:scale-105 transition">
-              <Terminal className="w-5 h-5" />
-            </div>
-            <h3 className="font-semibold text-slate-100 text-sm mb-1 group-hover:text-violet-400 transition">
-              Code Sandbox
-            </h3>
-            <p className="text-xs text-slate-400 mb-3">Pyodide WASM Python runner + C/C++ gateway.</p>
-            <span className="text-[11px] font-mono text-violet-400 flex items-center group-hover:translate-x-1 transition">
-              Launch Lab <ArrowRight className="w-3 h-3 ml-1" />
-            </span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Subjects Catalog Overview */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-bold text-slate-100">Core Subject Catalog</h2>
-            <p className="text-xs text-slate-400">Structured curricula designed with concept-before-syntax</p>
-          </div>
-          <Link
-            to="/explore"
-            className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center"
-          >
-            Browse All Subjects <ArrowRight className="w-3 h-3 ml-1" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {SUBJECTS.map(sub => (
-            <div
-              key={sub.id}
-              onClick={() => {
-                const subLesson = LESSONS.find(l => l.id.startsWith(sub.slug)) || LESSONS[0];
-                navigate(`/lessons/${subLesson.id}`);
+            {/* Background Decorative Rings */}
+            <div 
+              className="absolute -top-36 -right-10 w-64 h-64 rounded-full border border-[var(--border-strong)] pointer-events-none opacity-40"
+              style={{
+                boxShadow: '0 0 0 24px color-mix(in srgb, var(--accent) 3%, transparent), 0 0 0 48px color-mix(in srgb, var(--accent) 2%, transparent)'
               }}
-              className="p-5 rounded-xl bg-[#111827] border border-slate-800 hover:border-slate-700 transition cursor-pointer group"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
-                  {getSubjectIcon(sub.icon)}
+              aria-hidden="true"
+            />
+
+            <div className="relative z-10 flex items-center gap-2 text-[var(--muted)] text-[10px] font-bold tracking-wider uppercase mb-3">
+              <span className="w-6 h-6 rounded-lg bg-[var(--accent-soft)] text-[var(--accent)] flex items-center justify-center">
+                <BookOpen className="w-3.5 h-3.5" />
+              </span>
+              <span>CONTINUE LEARNING · {currentSubject.title}</span>
+            </div>
+
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_200px] gap-6 items-center">
+              <div className="space-y-3">
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[var(--text)] tracking-tight leading-snug">
+                  {currentLesson.title.split(':')[0]}
+                </h2>
+                <p className="text-xs sm:text-sm text-[var(--text-2)] leading-relaxed max-w-xl">
+                  {currentLesson.summary}
+                </p>
+
+                {/* Progress in current course */}
+                <div className="space-y-1.5 max-w-xs pt-1">
+                  <div className="flex items-center justify-between text-[11px] font-mono text-[var(--text-2)]">
+                    <span>Course progress</span>
+                    <span>{currentSubjectProgressPct}%</span>
+                  </div>
+                  <div 
+                    className="h-1.5 w-full bg-[var(--surface-3)] rounded-full overflow-hidden"
+                    role="progressbar"
+                    aria-label={`Progress in ${currentSubject.title}`}
+                    aria-valuenow={currentSubjectProgressPct}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  >
+                    <div 
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${currentSubjectProgressPct}%`,
+                        background: 'linear-gradient(90deg, var(--accent-strong), #a7baff)'
+                      }}
+                    />
+                  </div>
                 </div>
-                <span className="text-[11px] font-mono text-slate-400">
-                  {sub.totalLessons} Lessons
-                </span>
+
+                <div className="pt-2">
+                  <button
+                    onClick={() => navigate(`/lessons/${currentLesson.id}`)}
+                    className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-xl bg-[var(--accent-strong)] hover:opacity-95 text-white text-xs font-bold shadow-md cursor-pointer transition transform hover:-translate-y-0.5"
+                    aria-label={`Resume lesson: ${currentLesson.title}`}
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <span>{completedLessons.has(currentLesson.id) ? 'Review lesson' : 'Resume lesson'}</span>
+                    <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
+                  </button>
+                </div>
               </div>
-              <h3 className="font-semibold text-slate-100 text-sm mb-1 group-hover:text-blue-400 transition">
-                {sub.title}
-              </h3>
-              <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-3">
-                {sub.description}
-              </p>
-              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 font-mono">
-                <span className="capitalize">{sub.category.replace('-', ' ')}</span>
-                <span className="text-blue-400 font-medium group-hover:translate-x-1 transition flex items-center">
-                  Start Track <ArrowRight className="w-3 h-3 ml-1" />
+
+              {/* Concept Art / Diagram */}
+              <div 
+                className="hidden md:flex flex-col items-center justify-center p-3 rounded-2xl bg-[var(--surface-2)]/60 border border-[var(--border)] relative"
+                aria-label="Concept diagram preview"
+              >
+                <svg viewBox="0 0 200 130" className="w-full max-w-[180px] h-auto overflow-visible" role="img">
+                  <title>Concept visualization model</title>
+                  <defs>
+                    <linearGradient id="nodeGrad" x1="0" y1="0" x2="1" y2="1">
+                      <stop stopColor="var(--accent)" />
+                      <stop offset="1" stopColor="var(--accent-strong)" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M40 65 C70 65 75 30 110 30 S140 65 165 65" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.8" />
+                  <path d="M40 75 C70 75 80 105 125 105" fill="none" stroke="var(--cyan)" strokeWidth="1.4" strokeDasharray="3 3" opacity="0.8" />
+                  <rect x="10" y="45" width="55" height="40" rx="8" fill="url(#nodeGrad)" />
+                  <text x="37.5" y="62" fill="#142044" textAnchor="middle" fontSize="8" fontFamily="ui-monospace, monospace">ptr</text>
+                  <text x="37.5" y="75" fill="#142044" textAnchor="middle" fontSize="11" fontWeight="700" fontFamily="ui-monospace, monospace">0x24</text>
+                  
+                  <rect x="110" y="10" width="70" height="38" rx="8" fill="var(--surface-3)" stroke="var(--accent)" strokeOpacity="0.8" strokeWidth="1" />
+                  <text x="145" y="24" fill="var(--accent)" textAnchor="middle" fontSize="7" fontFamily="ui-monospace, monospace">ADDRESS</text>
+                  <text x="145" y="38" fill="var(--text)" textAnchor="middle" fontSize="10" fontFamily="ui-monospace, monospace">0x24</text>
+                  
+                  <rect x="125" y="85" width="70" height="38" rx="8" fill="var(--surface-3)" stroke="var(--cyan)" strokeOpacity="0.8" strokeWidth="1" />
+                  <text x="160" y="99" fill="var(--cyan)" textAnchor="middle" fontSize="7" fontFamily="ui-monospace, monospace">VALUE</text>
+                  <text x="160" y="113" fill="var(--text)" textAnchor="middle" fontSize="11" fontWeight="700" fontFamily="ui-monospace, monospace">42</text>
+                </svg>
+                <span className="text-[8px] font-mono text-[var(--muted)] mt-2 uppercase tracking-widest">
+                  ILLUSTRATIVE POINTER MODEL
                 </span>
               </div>
             </div>
-          ))}
+          </article>
+
+          {/* 3. Three Compact Learning Metrics (Real Data Only) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5" aria-label="Learning metrics summary">
+            {/* Metric 1: Demonstrated Mastery */}
+            <article className="p-4 rounded-[16px] bg-[var(--surface)] border border-[var(--border)] shadow-[var(--shadow)] flex flex-col justify-between">
+              <div className="flex items-center justify-between text-[11px] text-[var(--muted)]">
+                <span>Concepts Mastered</span>
+                <span className="w-7 h-7 rounded-lg bg-[var(--surface-2)] text-[var(--green)] flex items-center justify-center">
+                  <Award className="w-3.5 h-3.5" />
+                </span>
+              </div>
+              <div className="mt-3">
+                <div className="text-2xl font-bold font-mono text-[var(--text)] tracking-tight">
+                  {demonstratedMasteryCount}
+                </div>
+                <div className="text-[10px] text-[var(--muted)] mt-0.5">
+                  of {CONCEPTS.length} canonical concepts
+                </div>
+              </div>
+            </article>
+
+            {/* Metric 2: Review Due (Kept distinct from achievement) */}
+            <article className="p-4 rounded-[16px] bg-[var(--surface)] border border-[var(--border)] shadow-[var(--shadow)] flex flex-col justify-between">
+              <div className="flex items-center justify-between text-[11px] text-[var(--muted)]">
+                <span>Review Urgency</span>
+                <span className="w-7 h-7 rounded-lg bg-[var(--surface-2)] text-[var(--amber)] flex items-center justify-center">
+                  <Clock className="w-3.5 h-3.5" />
+                </span>
+              </div>
+              <div className="mt-3">
+                <div className="text-2xl font-bold font-mono text-[var(--text)] tracking-tight">
+                  {reviewDueCount}
+                </div>
+                <div className="text-[10px] text-[var(--muted)] mt-0.5">
+                  {reviewDueCount === 0 ? 'All concepts fresh' : 'Scheduled for retention refresh'}
+                </div>
+              </div>
+            </article>
+
+            {/* Metric 3: Curriculum Progress */}
+            <article className="p-4 rounded-[16px] bg-[var(--surface)] border border-[var(--border)] shadow-[var(--shadow)] flex flex-col justify-between">
+              <div className="flex items-center justify-between text-[11px] text-[var(--muted)]">
+                <span>Curriculum Progress</span>
+                <span className="w-7 h-7 rounded-lg bg-[var(--surface-2)] text-[var(--accent)] flex items-center justify-center">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                </span>
+              </div>
+              <div className="mt-3">
+                <div className="text-2xl font-bold font-mono text-[var(--text)] tracking-tight">
+                  {completedLessons.size} <span className="text-xs font-normal text-[var(--muted)]">/ {LESSONS.length}</span>
+                </div>
+                <div className="text-[10px] text-[var(--muted)] mt-0.5">
+                  {overallCompletionPct}% total syllabus finished
+                </div>
+              </div>
+            </article>
+          </div>
+
+          {/* 4. Active Learning Paths with Real Progress */}
+          <article className="rounded-[22px] border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-6 shadow-[var(--shadow)]">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-sm font-bold text-[var(--text)] tracking-tight">Your learning paths</h2>
+                <p className="text-[11px] text-[var(--muted)] mt-0.5">A clear route through the topics you are exploring.</p>
+              </div>
+              <Link 
+                to="/explore" 
+                className="text-[11px] font-semibold text-[var(--accent)] hover:text-[var(--text)] transition inline-flex items-center gap-1"
+              >
+                <span>All paths</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+
+            <div className="space-y-1.5" role="list" aria-label="Learning paths catalog">
+              {activeLearningPaths.map(({ subject, lessonsCount, percent, completedCount }) => (
+                <div
+                  key={subject.id}
+                  onClick={() => {
+                    const firstSubLesson = LESSONS.find(l => {
+                      const c = CONCEPTS.find(concept => concept.id === l.conceptId);
+                      return c?.subjectId === subject.id;
+                    });
+                    if (firstSubLesson) {
+                      navigate(`/lessons/${firstSubLesson.id}`);
+                    } else {
+                      navigate('/explore');
+                    }
+                  }}
+                  className="grid grid-cols-[36px_minmax(0,1fr)_90px] items-center gap-3 p-2.5 rounded-xl hover:bg-[var(--surface-hover)] transition cursor-pointer group"
+                  role="listitem"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      const firstSubLesson = LESSONS.find(l => {
+                        const c = CONCEPTS.find(concept => concept.id === l.conceptId);
+                        return c?.subjectId === subject.id;
+                      });
+                      if (firstSubLesson) navigate(`/lessons/${firstSubLesson.id}`);
+                    }
+                  }}
+                  aria-label={`${subject.title}: ${percent}% complete, ${completedCount} of ${lessonsCount} lessons finished`}
+                >
+                  <div className="w-9 h-9 rounded-xl bg-[var(--accent-soft)] flex items-center justify-center shrink-0">
+                    {getSubjectIcon(subject.icon)}
+                  </div>
+                  <div className="min-w-0 pr-2">
+                    <div className="text-xs font-bold text-[var(--text)] group-hover:text-[var(--accent)] transition truncate">
+                      {subject.title}
+                    </div>
+                    <div className="text-[10px] text-[var(--muted)] truncate mt-0.5">
+                      {subject.description} · {lessonsCount} lessons
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] font-mono text-[var(--text-2)] mb-1">
+                      {percent}%
+                    </div>
+                    <div 
+                      className="h-1 w-full bg-[var(--surface-3)] rounded-full overflow-hidden"
+                      role="progressbar"
+                      aria-valuenow={percent}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                    >
+                      <div 
+                        className="h-full bg-[var(--accent)] rounded-full transition-all duration-300"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
         </div>
+
+        {/* Right Column: Consistency, History & Recommended Next Steps */}
+        <aside className="grid gap-5 min-w-0" aria-label="Learning rhythm and suggestions">
+          {/* 5. Learning Rhythm (Weekly Consistency) */}
+          <article 
+            className="rounded-[22px] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow)]"
+            style={{
+              background: 'linear-gradient(135deg, var(--surface), color-mix(in srgb, var(--amber) 7%, var(--surface)))'
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-[var(--text)] tracking-tight">Your rhythm</h2>
+                <p className="text-[11px] text-[var(--muted)] mt-0.5">Small steps add up.</p>
+              </div>
+              <span className="w-8 h-8 rounded-xl bg-[color-mix(in_srgb,var(--amber)_14%,transparent)] text-[var(--amber)] flex items-center justify-center">
+                <TrendingUp className="w-4 h-4" />
+              </span>
+            </div>
+
+            <div className="flex items-baseline justify-between mt-3.5">
+              <div className="text-2xl font-bold font-mono text-[var(--text)] tracking-tight">
+                {rhythmDays.completedDaysThisWeek}{' '}
+                <span className="text-xs font-sans font-semibold text-[var(--muted)]">
+                  {rhythmDays.completedDaysThisWeek === 1 ? 'day active' : 'days active'}
+                </span>
+              </div>
+              <span className="text-[10px] text-[var(--muted)] font-mono">THIS WEEK</span>
+            </div>
+
+            {/* 7-Day Rhythm Dots */}
+            <div className="grid grid-cols-7 gap-1.5 mt-4" aria-label="Weekly study schedule">
+              {rhythmDays.days.map((d, idx) => (
+                <div key={idx} className="flex flex-col items-center gap-1.5 text-[9px] font-mono text-[var(--muted)]">
+                  <span>{d.label}</span>
+                  <div 
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] border transition ${
+                      d.isDone
+                        ? 'bg-[color-mix(in_srgb,var(--amber)_18%,transparent)] text-[var(--amber)] border-[color-mix(in_srgb,var(--amber)_45%,transparent)] font-bold'
+                        : d.isToday
+                        ? 'border-[var(--amber)] text-[var(--amber)] font-bold'
+                        : 'border-[var(--border-strong)] text-transparent'
+                    }`}
+                    title={`${d.dateStr}: ${d.isDone ? 'Activity recorded' : 'No activity'}`}
+                  >
+                    {d.isDone ? '✓' : d.isToday ? '•' : ''}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          {/* 6. Recent Learning Activity */}
+          <article className="rounded-[22px] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow)]">
+            <div className="flex items-center justify-between mb-3.5">
+              <div>
+                <h2 className="text-sm font-bold text-[var(--text)] tracking-tight">Recent activity</h2>
+                <p className="text-[11px] text-[var(--muted)] mt-0.5">Your latest learning moments.</p>
+              </div>
+              <span className="text-[10px] font-mono text-[var(--muted)]">EVIDENCE</span>
+            </div>
+
+            {recentActivities.length === 0 ? (
+              <div className="py-6 text-center space-y-1">
+                <p className="text-xs text-[var(--muted)]">No exercise attempts logged yet.</p>
+                <p className="text-[10px] text-[var(--subtle)]">Take an assessment or complete a lesson quiz to see history.</p>
+              </div>
+            ) : (
+              <div className="space-y-3" role="list">
+                {recentActivities.map(({ attempt, conceptTitle }, idx) => (
+                  <div key={idx} className="grid grid-cols-[28px_minmax(0,1fr)] gap-2.5 items-start text-xs" role="listitem">
+                    <div className="w-7 h-7 rounded-lg bg-[var(--surface-2)] text-[var(--cyan)] flex items-center justify-center shrink-0">
+                      {attempt.passed ? <CheckCircle2 className="w-3.5 h-3.5 text-[var(--green)]" /> : <Clock className="w-3.5 h-3.5 text-[var(--amber)]" />}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[11px] text-[var(--text-2)] leading-tight">
+                        {attempt.passed ? 'Demonstrated ' : 'Attempted '}
+                        <strong className="text-[var(--text)] font-semibold">{conceptTitle}</strong>
+                      </div>
+                      <div className="text-[9px] font-mono text-[var(--muted)] mt-0.5">
+                        {formatTimeAgo(attempt.timestamp)} · SCORE {attempt.score}%
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </article>
+
+          {/* 7. Recommended Next Steps with Explicit Reason */}
+          <article className="rounded-[22px] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow)]">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h2 className="text-sm font-bold text-[var(--text)] tracking-tight">A good next step</h2>
+                <p className="text-[11px] text-[var(--muted)] mt-0.5">Transparent algorithmic guidance.</p>
+              </div>
+              <span className="text-[var(--accent)] text-sm font-bold">✦</span>
+            </div>
+
+            {recommendations.length === 0 ? (
+              <div className="py-4 text-center text-xs text-[var(--muted)]">
+                You are on track! Explore any new subject from the catalog.
+              </div>
+            ) : (
+              <div className="divide-y divide-[var(--border)]">
+                {recommendations.slice(0, 3).map((rec) => {
+                  const targetLessonId = rec.suggestedLessonId || currentLesson.id;
+                  return (
+                    <div
+                      key={rec.id}
+                      onClick={() => navigate(`/lessons/${targetLessonId}`)}
+                      className="py-3 first:pt-1 last:pb-1 flex items-start gap-2.5 cursor-pointer group"
+                      tabIndex={0}
+                      role="button"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          navigate(`/lessons/${targetLessonId}`);
+                        }
+                      }}
+                      aria-label={`Recommendation: ${rec.conceptTitle}. Reason: ${rec.reason}`}
+                    >
+                      <span 
+                        className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
+                          rec.urgency === 'high' ? 'bg-[var(--amber)]' : 'bg-[var(--accent)]'
+                        }`} 
+                        aria-hidden="true"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-semibold text-[var(--text)] group-hover:text-[var(--accent)] transition">
+                          {rec.conceptTitle}
+                        </div>
+                        <p className="text-[10px] text-[var(--muted)] leading-relaxed mt-0.5">
+                          {rec.reason}
+                        </p>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 text-[var(--muted)] group-hover:text-[var(--accent)] group-hover:translate-x-0.5 transition shrink-0 mt-1" />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </article>
+        </aside>
       </div>
 
-      {/* Local-first Data Portability / Backup Controls */}
-      <div className="p-5 rounded-xl bg-[#111827] border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* Local-First Storage & Data Portability Controls */}
+      <section 
+        className="p-5 rounded-[18px] bg-[var(--surface)] border border-[var(--border)] flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[var(--shadow)]"
+        aria-label="Local-first data management"
+      >
         <div className="space-y-1">
-          <h3 className="text-sm font-semibold text-slate-200">Local-First Storage & Data Portability</h3>
-          <p className="text-xs text-slate-400">
+          <h3 className="text-xs sm:text-sm font-semibold text-[var(--text)]">
+            Local-First Storage & Zero-PII Data Portability
+          </h3>
+          <p className="text-[11px] text-[var(--muted)]">
             All your mastery state, bookmarks, and quiz progress stay locally in your browser. Export or restore backups at any time.
           </p>
           {importStatus && (
-            <p className="text-xs font-mono text-blue-400 mt-1">{importStatus}</p>
+            <p className="text-[11px] font-mono text-[var(--accent)] mt-1">{importStatus}</p>
           )}
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0">
           <input
             type="file"
             ref={fileInputRef}
             onChange={handleImportFile}
             accept=".json,application/json"
             className="hidden"
+            aria-label="Import JSON learner backup"
           />
           <button
             onClick={handleExportBackup}
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-mono transition border border-slate-700 cursor-pointer"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] text-[var(--text-2)] rounded-lg text-xs font-mono transition border border-[var(--border)] cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export Backup</span>
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-mono transition border border-slate-700 cursor-pointer"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] text-[var(--text-2)] rounded-lg text-xs font-mono transition border border-[var(--border)] cursor-pointer"
           >
             <Upload className="w-3.5 h-3.5" />
             <span>Import Backup</span>
@@ -412,13 +695,18 @@ export const DashboardView: React.FC = () => {
                 resetAllProgress();
               }
             }}
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-red-950/30 hover:bg-red-900/40 text-red-400 rounded-lg text-xs font-mono transition border border-red-900/50 cursor-pointer"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-[color-mix(in_srgb,var(--rose)_12%,transparent)] hover:bg-[color-mix(in_srgb,var(--rose)_20%,transparent)] text-[var(--rose)] rounded-lg text-xs font-mono transition border border-[color-mix(in_srgb,var(--rose)_30%,transparent)] cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset</span>
           </button>
         </div>
-      </div>
+      </section>
+
+      {/* Quiet Footer Note */}
+      <footer className="text-center pt-2 pb-4 text-[10px] text-[var(--subtle)]">
+        Lumenode · Explore. Understand. Build. · Free & Open-Source Computer Science Education
+      </footer>
     </div>
   );
 };

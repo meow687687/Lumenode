@@ -24,7 +24,7 @@ export const AppShell: React.FC = () => {
     }
   }, []);
 
-  // Global keyboard shortcuts for search
+  // Global keyboard shortcuts for search & escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Cmd+K or Ctrl+K
@@ -48,6 +48,11 @@ export const AppShell: React.FC = () => {
           setSearchOpen(true);
         }
       }
+
+      // Close sidebar or modals on Escape
+      if (e.key === 'Escape') {
+        setSidebarOpen(false);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -55,7 +60,7 @@ export const AppShell: React.FC = () => {
   }, [searchOpen, tourOpen]);
 
   return (
-    <div className="min-h-screen bg-[#0A0F1D] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] flex flex-col font-sans transition-colors">
       <Header 
         onToggleSidebar={() => setSidebarOpen(prev => !prev)} 
         onOpenSearch={() => setSearchOpen(true)}
@@ -71,7 +76,10 @@ export const AppShell: React.FC = () => {
           onOpenFeedback={() => setFeedbackOpen(true)}
         />
 
-        <main className="flex-1 overflow-y-auto bg-[#0A0F1D] p-4 sm:p-6 lg:p-8" id="main-content">
+        <main 
+          className="flex-1 overflow-y-auto bg-[var(--bg)] p-3 sm:p-6 lg:p-8" 
+          id="main-content"
+        >
           <Outlet />
         </main>
       </div>

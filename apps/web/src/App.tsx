@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ProgressProvider } from './context/ProgressContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { AppShell } from './components/layout/AppShell';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { AlertCircle, Loader2 } from 'lucide-react';
@@ -46,8 +47,9 @@ export const NotFoundPage: React.FC = () => (
 
 export const App: React.FC = () => {
   return (
-    <ProgressProvider>
-      <BrowserRouter>
+    <ThemeProvider>
+      <ProgressProvider>
+        <BrowserRouter>
         <Routes>
           <Route path="/" element={<AppShell />}>
             <Route index element={<DashboardView />} />
@@ -120,7 +122,8 @@ export const App: React.FC = () => {
         </Routes>
       </BrowserRouter>
     </ProgressProvider>
-  );
+  </ThemeProvider>
+);
 };
 
 export default App;

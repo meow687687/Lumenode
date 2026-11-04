@@ -49,7 +49,7 @@ test.describe('Lumenode Real Browser E2E Learner Journeys', () => {
     await dismissTourIfPresent(page);
 
     // Trigger Search Modal via Header
-    const searchBtn = page.getByRole('button', { name: /Search/i });
+    const searchBtn = page.getByRole('button', { name: 'Search lessons and concepts' });
     await searchBtn.click();
 
     const searchInput = page.getByPlaceholder(/Search lessons, concepts, languages/i);
@@ -155,10 +155,10 @@ test.describe('Lumenode Real Browser E2E Learner Journeys', () => {
 
     // Open sidebar
     await menuBtn.click();
-    await expect(page.getByText('Foundational Curricula')).toBeVisible();
+    await expect(page.getByText('Core Lessons')).toBeVisible();
 
     // Close or navigate
-    const exploreLink = page.getByRole('link', { name: /Explore All Subjects/i });
+    const exploreLink = page.getByRole('link', { name: /Learning Paths/i });
     await exploreLink.click();
     await expect(page).toHaveURL(/.*\/explore/);
   });
