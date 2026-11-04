@@ -1,15 +1,12 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { ProgressProvider, useProgress } from '../context/ProgressContext';
+import { ProgressProvider } from '../context/ProgressContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { DashboardView } from '../components/dashboard/DashboardView';
 import { AppShell } from '../components/layout/AppShell';
 import { StorageService } from '../services/persistence/storageService';
-import { CONCEPTS } from '../data/concepts';
-import { LESSONS } from '../data/lessons';
-import { SUBJECTS } from '../data/subjects';
 
 describe('Dashboard Evolution 1.1 Tests', () => {
   beforeEach(() => {

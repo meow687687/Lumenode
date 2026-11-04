@@ -1,87 +1,95 @@
 @import "tailwindcss";
 
-/* Lumenode UI Evolution 1.1 — Design Tokens */
+/* Lumenode Academic Monograph & Editorial CS Design Tokens */
 :root,
-:root[data-theme="dark"] {
+:root[data-theme="dark"],
+html[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0d1016;
-  --bg-elevated: #111620;
-  --surface: #151b27;
-  --surface-2: #1a2230;
-  --surface-3: #202b3b;
-  --surface-hover: #202a39;
-  --text: #f2f5fb;
-  --text-2: #b5c0d0;
-  --muted: #8290a4;
-  --subtle: #5f6c7e;
-  --border: rgba(175, 193, 219, 0.13);
-  --border-strong: rgba(175, 193, 219, 0.22);
-  --accent: #8aa7ff;
-  --accent-strong: #6488f5;
-  --accent-soft: rgba(116, 148, 255, 0.14);
-  --cyan: #6bd4d2;
-  --green: #70d3a5;
-  --amber: #f2bd70;
-  --rose: #f18d9d;
-  --shadow: 0 18px 54px rgba(0, 0, 0, 0.24);
-  --sidebar-w: 252px;
-  --radius-lg: 22px;
-  --radius-md: 16px;
-  --radius-sm: 12px;
+  --bg: #141619;
+  --bg-elevated: #1a1c22;
+  --surface: #1e2229;
+  --surface-2: #252a33;
+  --surface-3: #2c333e;
+  --surface-hover: #2e3440;
+  --text: #eceff4;
+  --text-2: #c0c6d4;
+  --muted: #8892b0;
+  --subtle: #5f6b85;
+  --border: #323946;
+  --border-strong: #d4a373;
+  --accent: #e5a967;
+  --accent-strong: #d4a373;
+  --accent-soft: rgba(229, 169, 103, 0.14);
+  --cyan: #88c0d0;
+  --green: #a3be8c;
+  --amber: #ebcb8b;
+  --rose: #bf616a;
+  --shadow: 0 16px 42px rgba(0, 0, 0, 0.45);
   --focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
 
-  /* Legacy CSS variable fallbacks for backward compatibility */
-  --bg-primary: #0d1016;
-  --bg-surface: #151b27;
-  --accent-blue: #6488f5;
-  --accent-cyan: #6bd4d2;
-  --accent-violet: #8aa7ff;
+  /* Legacy variable fallbacks */
+  --bg-primary: #141619;
+  --bg-surface: #1e2229;
+  --accent-blue: #e5a967;
+  --accent-cyan: #88c0d0;
+  --accent-violet: #d4a373;
 }
 
 :root[data-theme="light"],
 html[data-theme="light"] {
   color-scheme: light;
-  --bg: #f5f6f8;
-  --bg-elevated: #fbfcfe;
+  --bg: #fcfbf9;
+  --bg-elevated: #f5f2eb;
   --surface: #ffffff;
-  --surface-2: #f5f7fb;
-  --surface-3: #eaf0fa;
-  --surface-hover: #f0f4fb;
-  --text: #182131;
-  --text-2: #526077;
-  --muted: #748198;
-  --subtle: #929db0;
-  --border: rgba(37, 55, 84, 0.10);
-  --border-strong: rgba(37, 55, 84, 0.17);
-  --accent: #4267d5;
-  --accent-strong: #3157c4;
-  --accent-soft: rgba(66, 103, 213, 0.10);
-  --cyan: #147f88;
-  --green: #18845a;
-  --amber: #a86b1c;
-  --rose: #c34b63;
-  --shadow: 0 16px 42px rgba(35, 51, 78, 0.08);
+  --surface-2: #f0ece1;
+  --surface-3: #e6dfcf;
+  --surface-hover: #e8e2d4;
+  --text: #2e3440;
+  --text-2: #4c566a;
+  --muted: #7f899e;
+  --subtle: #9ca6ba;
+  --border: #dfd8c8;
+  --border-strong: #8c5d2b;
+  --accent: #8c5d2b;
+  --accent-strong: #72471b;
+  --accent-soft: rgba(140, 93, 43, 0.12);
+  --cyan: #2e6f7d;
+  --green: #4c7852;
+  --amber: #99621e;
+  --rose: #9c363d;
+  --shadow: 0 10px 30px rgba(76, 86, 106, 0.08);
   --focus: 0 0 0 2px #fff, 0 0 0 4px var(--accent);
 
-  /* Legacy CSS variable fallbacks for light theme */
-  --bg-primary: #f5f6f8;
+  /* Legacy variable fallbacks */
+  --bg-primary: #fcfbf9;
   --bg-surface: #ffffff;
-  --accent-blue: #3157c4;
-  --accent-cyan: #147f88;
-  --accent-violet: #4267d5;
+  --accent-blue: #8c5d2b;
+  --accent-cyan: #2e6f7d;
+  --accent-violet: #72471b;
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'EB Garamond', 'Charter', 'Bitstream Charter', 'Iowan Old Style', 'Cambria', Georgia, serif;
   background-color: var(--bg);
   color: var(--text);
-  letter-spacing: -0.01em;
   margin: 0;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  line-height: 1.65;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
+/* UI Controls, inputs, and buttons use crisp modern sans */
+button, input, select, textarea, nav, .font-sans {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Code and precise addresses */
 code, pre, .font-mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Headings use scholarly serif */
+h1, h2, h3, h4, h5, h6, .font-serif {
+  font-family: 'EB Garamond', 'Charter', 'Bitstream Charter', Georgia, serif;
 }
 
 /* Accessible focus styling */
@@ -90,7 +98,7 @@ code, pre, .font-mono {
   box-shadow: var(--focus);
 }
 
-/* Reduced motion for vestibular safety */
+/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -102,7 +110,7 @@ code, pre, .font-mono {
   }
 }
 
-/* Screen-reader utility */
+/* Screen reader utility */
 .sr-only {
   position: absolute;
   width: 1px;

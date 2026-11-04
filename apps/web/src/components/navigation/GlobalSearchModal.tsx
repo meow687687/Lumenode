@@ -62,7 +62,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
         title: lesson.title,
         subtitle: lesson.summary,
         url: `/lessons/${lesson.id}`,
-        badge: 'Lesson',
+        badge: 'Chapter',
       });
     });
 
@@ -74,7 +74,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
         title: concept.title,
         subtitle: concept.description,
         url: `/concepts/${concept.id}`,
-        badge: 'Concept',
+        badge: 'Proof',
       });
     });
 
@@ -86,15 +86,15 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
         title: subject.title,
         subtitle: subject.description,
         url: `/explore`,
-        badge: 'Subject',
+        badge: 'Treatise',
       });
     });
 
     // 4. Languages
     const languages = [
-      { name: 'C (C11)', desc: 'Systems programming with raw pointers & manual memory', lang: 'c' },
-      { name: 'C++ (C++17)', desc: 'RAII, smart pointers & object models', lang: 'cpp' },
-      { name: 'Python (3.12)', desc: 'High-level algorithms with in-browser Pyodide WASM', lang: 'python' },
+      { name: 'C (C11)', desc: 'Low-level systems programming with raw pointers & manual memory', lang: 'c' },
+      { name: 'C++ (C++17)', desc: 'High-performance RAII, templates & smart pointer models', lang: 'cpp' },
+      { name: 'Python (3.12)', desc: 'High-level algorithmic mechanics with Pyodide WASM', lang: 'python' },
     ];
     languages.forEach((l) => {
       items.push({
@@ -113,7 +113,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
   // Filtered search results
   const filteredResults = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return allItems.slice(0, 8); // Top results initially
+    if (!q) return allItems.slice(0, 8);
 
     return allItems
       .filter((item) => {
@@ -126,7 +126,6 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
       .slice(0, 10);
   }, [allItems, query]);
 
-  // Keyboard navigation & Focus Trap
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -143,7 +142,6 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
       e.preventDefault();
       onClose();
     } else if (e.key === 'Tab') {
-      // Focus trapping within modal
       const focusable = modalContainerRef.current?.querySelectorAll<HTMLElement>(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
       );
@@ -171,13 +169,13 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
   const getTypeIcon = (type: SearchResultItem['type']) => {
     switch (type) {
       case 'lesson':
-        return <BookOpen className="w-4 h-4 text-[var(--accent)]" />;
+        return <BookOpen className="w-3.5 h-3.5 text-[var(--accent)]" />;
       case 'concept':
-        return <Layers className="w-4 h-4 text-[var(--cyan)]" />;
+        return <Layers className="w-3.5 h-3.5 text-[var(--cyan)]" />;
       case 'subject':
-        return <Compass className="w-4 h-4 text-[var(--green)]" />;
+        return <Compass className="w-3.5 h-3.5 text-[var(--green)]" />;
       case 'language':
-        return <Terminal className="w-4 h-4 text-[var(--amber)]" />;
+        return <Terminal className="w-3.5 h-3.5 text-[var(--amber)]" />;
     }
   };
 
@@ -191,13 +189,14 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
     >
       <div 
         ref={modalContainerRef}
-        className="w-full max-w-2xl bg-[var(--surface)] border border-[var(--border-strong)] rounded-2xl shadow-[var(--shadow)] overflow-hidden flex flex-col"
+        className="w-full max-w-2xl bg-[var(--surface)] border border-[var(--border-strong)] rounded shadow-[var(--shadow)] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
+        style={{ borderTop: '3px solid var(--accent)' }}
       >
-        {/* Search Input Bar */}
-        <div className="flex items-center px-4 py-3.5 border-b border-[var(--border)] bg-[var(--bg-elevated)]">
-          <Search className="w-5 h-5 text-[var(--muted)] mr-3 shrink-0" />
+        {/* Monograph Search Input Bar */}
+        <div className="flex items-center px-4 py-3.5 border-b border-[var(--border)] bg-[var(--bg-elevated)] font-sans">
+          <Search className="w-4 h-4 text-[var(--accent)] mr-3 shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -206,8 +205,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
               setQuery(e.target.value);
               setSelectedIndex(0);
             }}
-            placeholder="Search lessons, concepts, languages, subjects... (or press Esc to exit)"
-            className="w-full bg-transparent text-sm text-[var(--text)] placeholder-[var(--muted)] outline-none"
+            placeholder="Search lessons, concepts, languages, treatises... (ESC to exit)"
+            className="w-full bg-transparent text-sm text-[var(--text)] placeholder-[var(--muted)] outline-none font-serif"
             aria-label="Search curriculum"
           />
           {query && (
@@ -219,7 +218,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
               <X className="w-4 h-4" />
             </button>
           )}
-          <span className="hidden sm:inline-block ml-3 px-2 py-0.5 text-[10px] font-mono font-medium rounded bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--border-strong)]">
+          <span className="hidden sm:inline-block ml-3 px-1.5 py-0.5 text-[9px] font-mono rounded bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--border)]">
             ESC
           </span>
         </div>
@@ -227,10 +226,10 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
         {/* Results List */}
         <div className="max-h-96 overflow-y-auto p-2 divide-y divide-[var(--border)]">
           {filteredResults.length === 0 ? (
-            <div className="py-12 text-center space-y-2">
-              <Search className="w-8 h-8 text-[var(--muted)] mx-auto opacity-50" />
-              <p className="text-sm text-[var(--muted)]">No matching educational content found</p>
-              <p className="text-xs text-[var(--subtle)]">Try searching for &quot;pointers&quot;, &quot;BST&quot;, &quot;joins&quot;, or &quot;C&quot;</p>
+            <div className="py-12 text-center space-y-2 font-serif">
+              <Search className="w-7 h-7 text-[var(--muted)] mx-auto opacity-50" />
+              <p className="text-base text-[var(--muted)]">No matching treatise or inquiry found</p>
+              <p className="text-xs text-[var(--subtle)] font-sans">Try searching for &quot;pointers&quot;, &quot;binary search tree&quot;, or &quot;C&quot;</p>
             </div>
           ) : (
             filteredResults.map((item, idx) => {
@@ -240,32 +239,32 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
                   key={item.id}
                   onClick={() => handleSelect(item)}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition ${
-                    isSelected ? 'bg-[var(--accent-soft)] border border-[var(--accent)]/40' : 'hover:bg-[var(--surface-hover)]'
+                  className={`flex items-center justify-between p-3 rounded cursor-pointer transition ${
+                    isSelected ? 'bg-[var(--accent-soft)] border-l-2 border-[var(--accent)]' : 'hover:bg-[var(--surface-hover)]'
                   }`}
                   role="option"
                   aria-selected={isSelected}
                 >
                   <div className="flex items-center space-x-3 min-w-0 pr-4">
-                    <div className="p-2 bg-[var(--surface-2)] border border-[var(--border)] rounded-lg shrink-0">
+                    <div className="p-1.5 bg-[var(--surface-2)] border border-[var(--border)] rounded shrink-0">
                       {getTypeIcon(item.type)}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center space-x-2">
-                        <span className={`text-sm font-semibold truncate ${isSelected ? 'text-[var(--accent)]' : 'text-[var(--text)]'}`}>
+                        <span className={`text-sm font-serif font-bold truncate ${isSelected ? 'text-[var(--accent)]' : 'text-[var(--text)]'}`}>
                           {item.title}
                         </span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--border)] shrink-0">
+                        <span className="text-[9px] font-sans font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--border)] shrink-0">
                           {item.badge}
                         </span>
                       </div>
-                      <p className="text-xs text-[var(--muted)] truncate mt-0.5">
+                      <p className="text-xs text-[var(--muted)] font-serif truncate mt-0.5">
                         {item.subtitle}
                       </p>
                     </div>
                   </div>
 
-                  <ArrowRight className={`w-4 h-4 shrink-0 transition ${isSelected ? 'text-[var(--accent)] translate-x-1' : 'text-[var(--subtle)]'}`} />
+                  <ArrowRight className={`w-3.5 h-3.5 shrink-0 transition ${isSelected ? 'text-[var(--accent)] translate-x-1' : 'text-[var(--subtle)]'}`} />
                 </div>
               );
             })
@@ -273,9 +272,9 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
         </div>
 
         {/* Footer shortcuts */}
-        <div className="px-4 py-2.5 bg-[var(--bg)] border-t border-[var(--border)] flex items-center justify-between text-[11px] text-[var(--muted)] font-mono">
-          <span>Navigate with <kbd className="px-1.5 py-0.5 rounded bg-[var(--surface-2)] text-[var(--text-2)] border border-[var(--border)]">↑</kbd> <kbd className="px-1.5 py-0.5 rounded bg-[var(--surface-2)] text-[var(--text-2)] border border-[var(--border)]">↓</kbd></span>
-          <span>Select with <kbd className="px-1.5 py-0.5 rounded bg-[var(--surface-2)] text-[var(--text-2)] border border-[var(--border)]">Enter</kbd></span>
+        <div className="px-4 py-2 bg-[var(--bg)] border-t border-[var(--border)] flex items-center justify-between text-[10px] text-[var(--muted)] font-mono">
+          <span>Navigate: <kbd className="px-1 py-0.5 rounded bg-[var(--surface-2)] text-[var(--text-2)] border border-[var(--border)]">↑</kbd> <kbd className="px-1 py-0.5 rounded bg-[var(--surface-2)] text-[var(--text-2)] border border-[var(--border)]">↓</kbd></span>
+          <span>Open: <kbd className="px-1 py-0.5 rounded bg-[var(--surface-2)] text-[var(--text-2)] border border-[var(--border)]">Enter</kbd></span>
         </div>
       </div>
     </div>

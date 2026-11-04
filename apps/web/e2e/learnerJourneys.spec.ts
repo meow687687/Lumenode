@@ -40,7 +40,7 @@ test.describe('Lumenode Real Browser E2E Learner Journeys', () => {
     await expect(page.getByRole('dialog')).not.toBeVisible();
 
     // 5. Re-launch onboarding manually from Header
-    const tourHelpBtn = page.getByRole('button', { name: 'Platform Tour & Guide' });
+    const tourHelpBtn = page.getByRole('button', { name: 'Platform Tour & Guide' }).first();
     await tourHelpBtn.click();
     await expect(page.getByRole('dialog')).toBeVisible();
   });
@@ -114,7 +114,7 @@ test.describe('Lumenode Real Browser E2E Learner Journeys', () => {
     await dismissTourIfPresent(page);
 
     // Ensure SQL playground loaded
-    await expect(page.getByText(/SQL Playground/i)).toBeVisible();
+    await expect(page.getByText(/In-Browser SQL Laboratory/i)).toBeVisible();
 
     // Click Execute Query
     const executeBtn = page.getByRole('button', { name: /Run SQL/i });
@@ -155,10 +155,10 @@ test.describe('Lumenode Real Browser E2E Learner Journeys', () => {
 
     // Open sidebar
     await menuBtn.click();
-    await expect(page.getByText('Core Lessons')).toBeVisible();
+    await expect(page.getByText('Foundational Chapters')).toBeVisible();
 
     // Close or navigate
-    const exploreLink = page.getByRole('link', { name: /Learning Paths/i });
+    const exploreLink = page.getByRole('link', { name: /Treatises/i }).first();
     await exploreLink.click();
     await expect(page).toHaveURL(/.*\/explore/);
   });
