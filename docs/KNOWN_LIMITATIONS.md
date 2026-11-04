@@ -9,9 +9,10 @@
 ## 1. Code Execution Sandboxes
 
 ### 1.1 Remote C & C++ Compiler Gateway
-- **Status:** Architecture specified (ADR 0004); remote microservice integration pending.
-- **Current Behavior:** The frontend truthfully displays `Remote Gateway Pending` and provides local compilation instructions via GCC/Clang.
-- **Why we don't simulate it locally in WASM:** Compiling C/C++ to generic 32-bit linear WebAssembly suppresses critical systems mechanics—such as hardware segmentation faults (`SIGSEGV`), bus errors, variable alignment padding, and true 64-bit pointer layouts. Rather than providing an inaccurate simulation that teaches anti-patterns, native execution is deferred to a secure Linux container sandbox.
+- **Status:** Production-Ready Microservice Implemented (ADR 0004 & `@lumenode/compiler-gateway`).
+- **Operational Behavior:** The gateway service provides authentic C11 and C++17 compilation and execution via GCC and G++. It strictly enforces CPU limits (2.0s), wall-clock limits (5.0s), virtual memory limits (64 MB via `prlimit`), unprivileged process isolation, and ephemeral scratch directory teardown.
+- **Frontend Integration:** When `VITE_COMPILER_GATEWAY_URL` is configured, `CompilerGatewayClient` seamlessly executes learner C/C++ submissions with authentic hardware signal diagnostics (`SIGSEGV`, `SIGFPE`, `SIGXCPU`). When unconfigured, the UI truthfully informs the learner and provides the command to launch the local microservice (`pnpm compiler-gateway:start`).
+- **Why we don't simulate it locally in WASM:** Compiling C/C++ to generic 32-bit linear WebAssembly suppresses critical systems mechanics—such as hardware segmentation faults (`SIGSEGV`), bus errors, variable alignment padding, and true 64-bit pointer layouts. Rather than providing an inaccurate simulation that teaches anti-patterns, native execution is processed with authentic compilers and execution sandboxes.
 
 ### 1.2 In-Browser Python (Pyodide)
 - **Cold-Start Latency:** The initial load of the Pyodide WebAssembly runtime (~12 MB compressed) may take 1–3 seconds on slower mobile connections. Subsequent runs execute within milliseconds.

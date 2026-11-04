@@ -67,7 +67,17 @@ Their execution is routed to an isolated remote container gateway conforming to 
 
 5. **Client Transparency & Honest Fallback:**
    - The frontend `CompilerGatewayClient` verifies gateway availability via health checks.
-   - If the gateway is unconfigured or unreachable, the user interface explicitly indicates this status and provides guidance on running a local Docker gateway container. It **never** fakes execution metrics or fabricates synthetic outputs.
+   - If the gateway is unconfigured or unreachable, the user interface explicitly indicates this status and provides guidance on running a local Docker gateway container or native gateway service (`pnpm compiler-gateway:start`). It **never** fakes execution metrics or fabricates synthetic outputs.
+
+6. **Verified Microservice Implementation (`@lumenode/compiler-gateway`):**
+   - The reference C11 & C++17 gateway service is fully implemented in `packages/compiler-gateway`.
+   - Automated tests in `packages/compiler-gateway/src/test/gateway.test.ts` verify runtime bounds enforcement against:
+     - Arbitrary code execution of authentic C11 and C++17 binaries.
+     - Standard input streaming (`stdin`).
+     - Compiler diagnostic parsing and accurate syntax line numbers.
+     - POSIX signal trapping: `SIGSEGV` (null pointer dereferences), `SIGFPE` (division by zero), and `SIGXCPU` / `SIGKILL` (infinite loops).
+     - Standard output buffer overflow attacks via immediate stream truncation.
+     - Complete ephemeral directory cleanup on exit.
 
 ---
 

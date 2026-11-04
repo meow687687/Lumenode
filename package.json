@@ -10,6 +10,8 @@
     "test": "pnpm --filter @lumenode/web run test",
     "test:e2e": "playwright test --config=apps/web/playwright.config.ts",
     "typecheck": "pnpm --filter @lumenode/shared-types run typecheck && pnpm --filter @lumenode/web run typecheck",
+    "compiler-gateway:start": "pnpm --filter @lumenode/compiler-gateway start",
+    "compiler-gateway:test": "pnpm --filter @lumenode/compiler-gateway test",
     "content:validate": "tsx scripts/content-validate.ts",
     "content:check-links": "tsx scripts/content-validate.ts --check-links",
     "content:check-code": "tsx scripts/content-check-code.ts",

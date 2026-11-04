@@ -1,0 +1,17 @@
+{
+  "name": "@lumenode/compiler-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Genuine, sandboxed C11 and C++17 execution service implementing ADR 0004",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "start": "tsx src/server.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vitest": "^4.1.4"
+  }
+}
