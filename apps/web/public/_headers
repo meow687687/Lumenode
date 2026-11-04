@@ -2,7 +2,13 @@
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://cdn.jsdelivr.net https://pypi.org; worker-src 'self' blob:; frame-ancestors 'none'; object-src 'none'; base-uri 'self';
 
 /*.wasm
   Content-Type: application/wasm
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*
   Cache-Control: public, max-age=31536000, immutable
