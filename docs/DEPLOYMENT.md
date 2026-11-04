@@ -50,12 +50,38 @@ Lumenode uses Vite environment variables (prefixed with `VITE_`):
 | Variable | Default Value | Description |
 | :--- | :--- | :--- |
 | `VITE_APP_ENV` | `production` | Deployment stage (`development`, `staging`, `production`). |
-| `VITE_COMPILER_GATEWAY_URL` | `""` (Empty) | Optional endpoint for remote C/C++ compiler microservice (e.g., `https://compiler.lumenode.org/v1/compile`). When omitted, client truthfully reports local execution is active for Python/SQL and pending for C/C++. |
+| `VITE_COMPILER_GATEWAY_URL` | `""` (Empty) | Optional endpoint for remote C/C++ compiler microservice (e.g., `http://localhost:2358` or `https://compiler.lumenode.org`). When configured, authentic sandboxed C11/C++17 execution runs via the gateway. When omitted, client truthfully reports local execution is active for Python/SQL and indicates how to run the local gateway (`pnpm compiler-gateway:start`). |
 | `VITE_ENABLE_ANALYTICS` | `false` | Privacy-preserving telemetry toggle. |
 
 ---
 
-## 4. Production Security Headers & Content Security Policy (CSP)
+## 4. Compiler Gateway Deployment (`@lumenode/compiler-gateway`)
+
+For environments offering authentic C11 and C++17 native execution:
+
+### 4.1 Native Node.js Deployment
+```bash
+# Start compiler gateway on port 2358
+pnpm compiler-gateway:start
+```
+
+### 4.2 Docker Container Deployment
+```bash
+# Build sandbox image
+docker build -t lumenode/compiler-gateway:latest -f packages/compiler-gateway/Dockerfile .
+
+# Run container with unshared network namespace and memory ceilings
+docker run -d \
+  --name lumenode-compiler \
+  -p 2358:2358 \
+  --pids-limit 64 \
+  --memory 512m \
+  lumenode/compiler-gateway:latest
+```
+
+---
+
+## 5. Production Security Headers & Content Security Policy (CSP)
 
 To maintain security, isolate Web Workers, and prevent clickjacking or unauthorized script injection, configure the web server or CDN with the following HTTP response headers:
 
