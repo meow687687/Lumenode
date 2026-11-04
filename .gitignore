@@ -10,5 +10,7 @@ build/
 *.log
 coverage/
 .vite/
+test-results/
+playwright-report/
 .agents/
 .commandcode/

@@ -67,7 +67,7 @@ async function getDatabase(): Promise<Database> {
   isInitializing = true;
   try {
     SQL = await initSqlJs({
-      locateFile: file => `https://sql.js.org/dist/${file}`,
+      locateFile: file => `/${file}`,
     });
     db = new SQL.Database();
     db.run(INITIAL_SCHEMA_SQL);

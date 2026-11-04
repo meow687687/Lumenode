@@ -1,13 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { LESSONS } from '../../data/lessons';
 import { LessonRenderer } from './LessonRenderer';
 import { safeValidateLesson } from '@lumenode/shared-types';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { analytics } from '../../services/telemetry/analyticsService';
 
 export const LessonRoutePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (id) {
+      analytics.track('lesson_opened', { lessonId: id });
+    }
+  }, [id]);
 
   const rawLesson = LESSONS.find(l => l.id === id);
 

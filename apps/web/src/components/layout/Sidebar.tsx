@@ -11,7 +11,8 @@ import {
   CheckCircle2, 
   Zap,
   Award,
-  HelpCircle
+  HelpCircle,
+  MessageSquarePlus
 } from 'lucide-react';
 import { LESSONS } from '../../data/lessons';
 import { useProgress } from '../../context/ProgressContext';
@@ -20,12 +21,14 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenTour?: () => void;
+  onOpenFeedback?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
   onOpenTour,
+  onOpenFeedback,
 }) => {
   const { completedLessons } = useProgress();
   const location = useLocation();
@@ -104,6 +107,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <HelpCircle className="w-4 h-4 text-blue-400" />
               <span>Platform Tour</span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (onOpenFeedback) onOpenFeedback();
+                handleLinkClick();
+              }}
+              className="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-amber-300 hover:bg-slate-800/60 transition cursor-pointer text-left"
+            >
+              <MessageSquarePlus className="w-4 h-4 text-amber-400" />
+              <span>Give Feedback</span>
             </button>
           </div>
 

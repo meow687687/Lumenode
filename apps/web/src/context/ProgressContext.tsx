@@ -11,6 +11,7 @@ import { MasteryEngine } from '../services/mastery/masteryEngine';
 import { RecommendationEngine } from '../services/recommendations/recommendationEngine';
 import { CONCEPTS } from '../data/concepts';
 import { LESSONS } from '../data/lessons';
+import { analytics } from '../services/telemetry/analyticsService';
 
 interface ProgressContextType {
   completedLessons: Set<string>;
@@ -91,6 +92,11 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return next;
     });
 
+    analytics.track('lesson_completed', {
+      lessonId,
+      totalCompleted: completedLessons.size + 1,
+    });
+
     const lesson = LESSONS.find((l) => l.id === lessonId);
     if (lesson) {
       setMasteryRecords((prev) => {
@@ -117,6 +123,23 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       userAnswer?: unknown;
     }
   ) => {
+    analytics.track('exercise_attempted', {
+      conceptId,
+      exerciseId: attempt.exerciseId,
+      exerciseType: attempt.type,
+      passed: attempt.passed,
+      score: attempt.score,
+      hintsUsed: attempt.hintsUsed ?? 0,
+    });
+
+    if (attempt.passed) {
+      analytics.track('exercise_completed', {
+        conceptId,
+        exerciseId: attempt.exerciseId,
+        score: attempt.score,
+      });
+    }
+
     setMasteryRecords((prev) => {
       const current = prev[conceptId] || MasteryEngine.createDefaultRecord(conceptId);
       const updated = MasteryEngine.recordExerciseAttempt(current, attempt);

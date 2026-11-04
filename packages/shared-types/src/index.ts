@@ -509,6 +509,52 @@ export const ExecutionResultSchema = z.object({
 });
 export type ExecutionResult = z.infer<typeof ExecutionResultSchema>;
 
+// Phase 5: Feedback & Analytics Schemas
+export const FeedbackCategorySchema = z.enum([
+  'problem',
+  'improvement',
+  'educational_error',
+  'accessibility',
+  'lesson_clarity',
+]);
+export type FeedbackCategory = z.infer<typeof FeedbackCategorySchema>;
+
+export const FeedbackSubmissionSchema = z.object({
+  id: z.string(),
+  submittedAt: z.number(),
+  category: FeedbackCategorySchema,
+  lessonId: z.string().optional(),
+  conceptId: z.string().optional(),
+  rating: z.number().int().min(1).max(5).optional(),
+  comment: z.string().min(3),
+  userEmail: z.string().email().optional().or(z.literal('')),
+  deviceInfo: z.object({
+    userAgent: z.string().optional(),
+    viewport: z.string().optional(),
+  }).optional(),
+});
+export type FeedbackSubmission = z.infer<typeof FeedbackSubmissionSchema>;
+
+export const AnalyticsEventTypeSchema = z.enum([
+  'lesson_opened',
+  'lesson_completed',
+  'exercise_attempted',
+  'exercise_completed',
+  'visualization_explored',
+  'search_performed',
+  'path_progressed',
+  'error_encountered',
+]);
+export type AnalyticsEventType = z.infer<typeof AnalyticsEventTypeSchema>;
+
+export const AnalyticsEventSchema = z.object({
+  eventId: z.string(),
+  timestamp: z.number(),
+  type: AnalyticsEventTypeSchema,
+  payload: z.record(z.union([z.string(), z.number(), z.boolean()])),
+});
+export type AnalyticsEvent = z.infer<typeof AnalyticsEventSchema>;
+
 // Helper Validation Functions
 export function validateLesson(data: unknown): Lesson {
   return LessonSchema.parse(data);

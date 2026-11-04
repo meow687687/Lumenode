@@ -1,15 +1,21 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, Search, GitBranch, Menu, HelpCircle } from 'lucide-react';
+import { Sparkles, Search, GitBranch, Menu, HelpCircle, MessageSquarePlus } from 'lucide-react';
 import { useProgress } from '../../context/ProgressContext';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
   onOpenSearch?: () => void;
   onOpenTour?: () => void;
+  onOpenFeedback?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onOpenSearch, onOpenTour }) => {
+export const Header: React.FC<HeaderProps> = ({ 
+  onToggleSidebar, 
+  onOpenSearch, 
+  onOpenTour,
+  onOpenFeedback 
+}) => {
   const { completedLessons } = useProgress();
   const location = useLocation();
 
@@ -115,6 +121,15 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onOpenSearch, o
           className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg transition cursor-pointer"
         >
           <HelpCircle className="w-4 h-4" />
+        </button>
+
+        <button
+          onClick={onOpenFeedback}
+          aria-label="Beta Feedback & Suggestions"
+          title="Beta Feedback & Suggestions"
+          className="p-2 text-slate-400 hover:text-amber-300 hover:bg-slate-800/60 rounded-lg transition cursor-pointer"
+        >
+          <MessageSquarePlus className="w-4 h-4" />
         </button>
 
         <div className="hidden sm:flex items-center space-x-2 text-xs font-mono text-slate-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
